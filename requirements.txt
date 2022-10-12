@@ -1,0 +1,10 @@
+gensim
+lightgbm
+catboost
+pytest
+black
+isort
+flake8
+mypy
+jupyterlab
+jupyterlab-vim

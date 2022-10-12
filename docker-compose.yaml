@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  opt-sota-challenge:
+    image: nvidia-rapids
+    container_name: opt-sota-challenge
+    build:
+      args:
+        - PROJECT_NAME=opt-sota-challenge
+        - USER_NAME=developer
+        - GROUP_NAME=developer
+        - UID=${HOST_UID-1000}
+        - GID=${HOST_GID-1000}
+      context: ./
+      dockerfile: Dockerfile
+    tty: true
+    volumes:
+      - ./:/home/developer/opt-sota-challenge
+    ports:
+      - 8888:8888
