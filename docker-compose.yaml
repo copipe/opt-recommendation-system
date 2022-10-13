@@ -13,6 +13,12 @@ services:
         - GID=${HOST_GID-1000}
       context: ./
       dockerfile: Dockerfile
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities:
+                - gpu
     tty: true
     volumes:
       - ./:/home/developer/opt-sota-challenge
