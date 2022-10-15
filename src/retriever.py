@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from src.metrics import ndcg_score, precision_score, recall_score
+from src.utils import order_immutable_deduplication
 
 
 class Retriever(metaclass=ABCMeta):
@@ -18,26 +19,29 @@ class Retriever(metaclass=ABCMeta):
         date_th (str): Boundary between train period and evaluation period.
         train_period (int): Number of days of train period.
         eval_period (int, optional): Number of days of evaluation period. Defaults to 7.
+        top_n (int): Get top n popular items.
         candidate_items (Dict[str, List[str]]): Item list of recommendation candidates searched for by user.
         category_types (List[str]) : List of category types. (A:人材, B:旅行, C:不動産, D:アパレル)
     """
 
     def __init__(
-        self, df: cudf.DataFrame, date_th: str, train_period: int, eval_period: int = 7
+        self,
+        df: cudf.DataFrame,
+        date_th: str,
+        train_period: int,
+        eval_period: int = 7,
+        top_n: int = 10,
     ) -> None:
         self.df = df
         self.date_th = pd.to_datetime(date_th)
         self.train_start_date = self.date_th - pd.Timedelta(train_period, "days")
         self.eval_end_date = self.date_th + pd.Timedelta(eval_period, "days")
+        self.top_n = top_n
         self.candidate_items: Dict[str, List[str]] = {}
         self.category_types: List[str] = ["A", "B", "C", "D"]
 
     @abstractclassmethod
     def fit(self) -> None:
-        pass
-
-    @abstractclassmethod
-    def search(self) -> None:
         pass
 
     def evaluate(self, k=22, verbose: bool = True) -> Tuple[float, float, float]:
@@ -73,7 +77,7 @@ class Retriever(metaclass=ABCMeta):
         sum_recall = 0
         sum_precision = 0
         for user_id, true_scores, true_items in df.to_pandas().values:
-            pred_items = self.candidate_items[user_id]
+            pred_items = self.candidate_items.get(user_id, [])
             pred_scores = true_scores[np.isin(true_items, pred_items)]
 
             n_users += 1
@@ -107,24 +111,7 @@ class Retriever(metaclass=ABCMeta):
 
 
 class PopularItem(Retriever):
-    """Select recently popular items as candidate items.
-
-    Attributes:
-        popular_items (Dict[str, List[str]]): Popular item list for each category.
-        top_n (int): Get top n popular items.
-    """
-
-    def __init__(
-        self,
-        df: cudf.DataFrame,
-        date_th: str,
-        train_period: int,
-        eval_period: int = 7,
-        top_n: int = 10,
-    ):
-        super().__init__(df, date_th, train_period, eval_period)
-        self.popular_items: Dict[str, List[str]] = {}
-        self.top_n: int = top_n
+    """Select recently popular items as candidate items."""
 
     def fit(self) -> None:
         """Aggregate the recent popular items."""
@@ -136,28 +123,40 @@ class PopularItem(Retriever):
         ].reset_index(drop=True)
 
         # Get top N popular items (items with many actions) for each category.
+        popular_items: Dict[str, List[str]] = {}
         for c in self.category_types:
             vc = df[df["category"] == c]["product_id"].value_counts()[: self.top_n]
-            self.popular_items[c] = vc.to_pandas().index.tolist()
+            popular_items[c] = vc.to_pandas().index.tolist()
 
-    def search(self) -> None:
-        "Add popular items to candidate items for each user"
-
+        # Add popular items to candidate items for each user
         for c in self.category_types:
             users = self.df[self.df["category"] == c]["user_id"].to_pandas().unique()
             for user in users:
-                self.candidate_items[user] = self.popular_items[c]
+                self.candidate_items[user] = popular_items[c]
 
 
-class PastInterest(Retriever):
-    def __init__(self):
-        super().__init__()
+class FavoriteItem(Retriever):
+    """Select recent favorite items as candidate items."""
 
     def fit(self) -> None:
-        raise NotImplementedError()
+        """Aggregate the recent favorite items."""
 
-    def search(self) -> None:
-        raise NotImplementedError()
+        # Extract only the data for the train period.
+        s, e = self.train_start_date, self.date_th
+        df = self.df[
+            (s < self.df["time_stamp"]) & (self.df["time_stamp"] <= e)
+        ].reset_index(drop=True)
+
+        # Get top N recent favorite items (items with cv, click, view).
+        df = df[df["event_type"] > 0]
+        df = df.sort_values(["user_id", "time_stamp"], ascending=False)
+        df = df.groupby("user_id").agg({"product_id": list})
+        df = df.reset_index()
+
+        # Add recent favorite items to candidate items for each user.
+        for user_id, items in df.to_pandas().values:
+            items = order_immutable_deduplication(items.tolist())
+            self.candidate_items[user_id] = items[: self.top_n]
 
 
 class CoOccurrenceItem(Retriever):
@@ -165,7 +164,4 @@ class CoOccurrenceItem(Retriever):
         super().__init__()
 
     def fit(self) -> None:
-        raise NotImplementedError()
-
-    def search(self) -> None:
         raise NotImplementedError()
