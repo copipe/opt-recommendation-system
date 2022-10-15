@@ -52,7 +52,11 @@ def recall_score(true_items: List[str], pred_items: List[str]) -> float:
     """
     true_items = set(true_items)
     pred_items = set(pred_items)
-    return len(true_items & pred_items) / len(true_items)
+
+    if len(true_items) == 0:
+        return 0
+    else:
+        return len(true_items & pred_items) / len(true_items)
 
 
 def precision_score(true_items: List[str], pred_items: List[str]) -> float:
@@ -67,4 +71,8 @@ def precision_score(true_items: List[str], pred_items: List[str]) -> float:
     """
     true_items = set(true_items)
     pred_items = set(pred_items)
-    return len(true_items & pred_items) / len(pred_items)
+
+    if len(pred_items) == 0:
+        return 0
+    else:
+        return len(true_items & pred_items) / len(pred_items)
