@@ -107,6 +107,13 @@ class Retriever(metaclass=ABCMeta):
 
 
 class PopularItem(Retriever):
+    """Select recently popular items as candidate items.
+
+    Attributes:
+        popular_items (Dict[str, List[str]]): Popular item list for each category.
+        top_n (int): Get top n popular items.
+    """
+
     def __init__(
         self,
         df: cudf.DataFrame,
@@ -116,20 +123,26 @@ class PopularItem(Retriever):
         top_n: int = 10,
     ):
         super().__init__(df, date_th, train_period, eval_period)
-        self.popular_items = {}
-        self.top_n = top_n
+        self.popular_items: Dict[str, List[str]] = {}
+        self.top_n: int = top_n
 
     def fit(self) -> None:
+        """Aggregate the recent popular items."""
+
+        # Extract only the data for the train period.
         s, e = self.train_start_date, self.date_th
         df = self.df[
             (s < self.df["time_stamp"]) & (self.df["time_stamp"] <= e)
         ].reset_index(drop=True)
 
+        # Get top N popular items (items with many actions) for each category.
         for c in self.category_types:
             vc = df[df["category"] == c]["product_id"].value_counts()[: self.top_n]
             self.popular_items[c] = vc.to_pandas().index.tolist()
 
     def search(self) -> None:
+        "Add popular items to candidate items for each user"
+
         for c in self.category_types:
             users = self.df[self.df["category"] == c]["user_id"].to_pandas().unique()
             for user in users:
