@@ -1,8 +1,10 @@
+from typing import List
+
 import numpy as np
 
 
 def dcg_score(scores: np.ndarray) -> np.float64:
-    """Discounted cumulative gain (DCG).
+    """Compute the discounted cumulative gain (DCG).
 
     Args:
         scores (np.ndarray): List of scores.
@@ -16,7 +18,7 @@ def dcg_score(scores: np.ndarray) -> np.float64:
 
 
 def ndcg_score(y_true: np.ndarray, y_pred: np.ndarray, k: int = 22) -> np.float64:
-    """Normalized discounted cumulative gain (NDCG) at rank k.
+    """Compute the normalized discounted cumulative gain (NDCG) at rank k.
 
     Args:
         y_true (np.ndarray): List of scores. (ground truth)
@@ -36,3 +38,33 @@ def ndcg_score(y_true: np.ndarray, y_pred: np.ndarray, k: int = 22) -> np.float6
     ideal_ndcg = dcg_score(y_true)
     actual_ndcg = dcg_score(y_pred)
     return actual_ndcg / ideal_ndcg
+
+
+def recall_score(true_items: List[str], pred_items: List[str]) -> float:
+    """Compute the recall.
+
+    Args:
+        true_items (List[str]): List of items. (ground truth)
+        pred_items (List[str]): List of items. (prediction)
+
+    Returns:
+        float: Recall score.
+    """
+    true_items = set(true_items)
+    pred_items = set(pred_items)
+    return len(true_items & pred_items) / len(true_items)
+
+
+def precision_score(true_items: List[str], pred_items: List[str]) -> float:
+    """Compute the precision.
+
+    Args:
+        true_items (List[str]): List of items. (ground truth)
+        pred_items (List[str]): List of items. (prediction)
+
+    Returns:
+        float: Precision score.
+    """
+    true_items = set(true_items)
+    pred_items = set(pred_items)
+    return len(true_items & pred_items) / len(pred_items)
