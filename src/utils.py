@@ -13,3 +13,7 @@ def order_immutable_deduplication(items: List[str]) -> List[str]:
         _type_: Deduped item list.
     """
     return sorted(set(items), key=items.index)
+
+
+def flatten_2d_list(items: List[List[str]]) -> List[str]:
+    return sum(items, [])
