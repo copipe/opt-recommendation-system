@@ -120,8 +120,12 @@ class Retriever(metaclass=ABCMeta):
             print(msg)
         return max_ndcg, recall, precision
 
-    def get_table(self) -> cudf.DataFrame:
+    def get_pairs(self, df: cudf.DataFrame, target: bool = True) -> cudf.DataFrame:
         """Convert self.candidate_items of dictionary type to DataFrame type.
+
+        Args:
+            df (cudf.DataFrame): Preprocessed data.
+            target (bool): Whether to assign a target for ranker. Defaults to True.
 
         Returns:
             cudf.DataFrame: DataFrame containing all combinations of users and candidate items.
@@ -131,7 +135,29 @@ class Retriever(metaclass=ABCMeta):
         for user, items in self.candidate_items.items():
             users += [user] * len(items)
             candidates += items
-        return cudf.DataFrame({"user_id": users, "product_id": candidates})
+        pairs = cudf.DataFrame({"user_id": users, "product_id": candidates})
+
+        if target:
+            # Extract only the data for the evaluation period
+            df = period_extraction(df, self.eval_start_date, self.eval_end_date)
+
+            # Remove other and (cv=1 and ad !=1). (cv:3, click:2, view:1, other:0)
+            df = df[df["event_type"] > 0]
+            df = df[(df["event_type"] != 3) | (df["ad"] == 1)]
+
+            # LB's rated users are probably filtered.
+            rated_users = df[df["event_type"] > 1]["user_id"].unique()
+
+            # Add target for ranker.
+            df = df.groupby(["user_id", "product_id"])["event_type"].max()
+            df = df.reset_index().rename(columns={"event_type": "target"})
+            pairs = cudf.merge(pairs, df, how="left", on=["user_id", "product_id"])
+            pairs["target"] = pairs["target"].fillna(0)
+
+            # Add evaluator user label.
+            pairs["rated"] = pairs["user_id"].isin(rated_users).astype(int)
+
+        return pairs
 
 
 class PopularItem(Retriever):
