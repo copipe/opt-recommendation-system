@@ -81,9 +81,11 @@ class Retriever(metaclass=ABCMeta):
         df = df[df["user_id"].isin(users)]
 
         # Extract positive examples for each user.
-        df.groupby(["user_id", "product_id"])[
-            ["event_type", "time_stamp"]
-        ].max().reset_index()
+        df = (
+            df.groupby(["user_id", "product_id"])[["event_type", "time_stamp"]]
+            .max()
+            .reset_index()
+        )
         df = df.sort_values(["user_id", "event_type"], ascending=False)
         df = df.reset_index()
         df = (

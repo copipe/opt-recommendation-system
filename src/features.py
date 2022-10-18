@@ -56,6 +56,7 @@ class UserActionScore(AbstractFeatureTransformer):
             ("pv", 1),
             ("other", 0),
         ]
+        pairs["index"] = np.arange(len(pairs))
         new_feature_names = []
         for event_name, event_type in action_list:
             feature_name = f"{event_name}-score-r{self.decay_rate}_by_user"
@@ -66,7 +67,8 @@ class UserActionScore(AbstractFeatureTransformer):
             pairs = cudf.merge(pairs, feature, how="left", on="user_id")
             pairs[feature_name] = pairs[feature_name].fillna(0)
             new_feature_names.append(feature_name)
-        return pairs[new_feature_names].sort_index()
+        pairs = pairs.sort_values("index").drop("index", axis=1).reset_index(drop=True)
+        return pairs[new_feature_names]
 
 
 class ItemActionScore(AbstractFeatureTransformer):
@@ -94,6 +96,7 @@ class ItemActionScore(AbstractFeatureTransformer):
             ("pv", 1),
             ("other", 0),
         ]
+        pairs["index"] = np.arange(len(pairs))
         new_feature_names = []
         for event_name, event_type in action_list:
             feature_name = f"{event_name}-score-r{self.decay_rate}_by_item"
@@ -104,45 +107,8 @@ class ItemActionScore(AbstractFeatureTransformer):
             pairs = cudf.merge(pairs, feature, how="left", on="product_id")
             pairs[feature_name] = pairs[feature_name].fillna(0)
             new_feature_names.append(feature_name)
-        return pairs[new_feature_names].sort_index()
-
-
-class ItemActionScore(AbstractFeatureTransformer):
-    def __init__(
-        self,
-        start_date: pd.Timestamp,
-        end_date: pd.Timestamp,
-        decay_rate: int = 1.0,
-    ):
-        super().__init__(start_date, end_date)
-        self.decay_rate = decay_rate
-
-    def fit(self, df: cudf.DataFrame, pairs: cudf.DataFrame):
-        pass
-
-    def transform(self, df: cudf.DataFrame, pairs: cudf.DataFrame) -> cudf.DataFrame:
-        df = period_extraction(df, self.start_date, self.end_date)
-        df["day_diff"] = (self.end_date - df["time_stamp"]) / np.timedelta64(1, "D")
-        decay_rate = self.decay_rate
-        df["weight_decay"] = df["day_diff"].apply(lambda x: decay_rate**x)
-
-        action_list = [
-            ("cv", 3),
-            ("click", 2),
-            ("pv", 1),
-            ("other", 0),
-        ]
-        new_feature_names = []
-        for event_name, event_type in action_list:
-            feature_name = f"{event_name}-score-r{self.decay_rate}_by_item"
-            df["score"] = df["weight_decay"] * (df["event_type"] == event_type)
-            feature = df.groupby("product_id")["score"].sum().reset_index()
-            feature = feature.rename(columns={"score": feature_name})
-
-            pairs = cudf.merge(pairs, feature, how="left", on="product_id")
-            pairs[feature_name] = pairs[feature_name].fillna(0)
-            new_feature_names.append(feature_name)
-        return pairs[new_feature_names].sort_index()
+        pairs = pairs.sort_values("index").drop("index", axis=1).reset_index(drop=True)
+        return pairs[new_feature_names]
 
 
 class UserItemActionScore(AbstractFeatureTransformer):
@@ -170,6 +136,7 @@ class UserItemActionScore(AbstractFeatureTransformer):
             ("pv", 1),
             ("other", 0),
         ]
+        pairs["index"] = np.arange(len(pairs))
         new_feature_names = []
         for event_name, event_type in action_list:
             feature_name = f"{event_name}-score-r{self.decay_rate}_by_user-item"
@@ -180,7 +147,8 @@ class UserItemActionScore(AbstractFeatureTransformer):
             pairs = cudf.merge(pairs, feature, how="left", on=["user_id", "product_id"])
             pairs[feature_name] = pairs[feature_name].fillna(0)
             new_feature_names.append(feature_name)
-        return pairs[new_feature_names].sort_index()
+        pairs = pairs.sort_values("index").drop("index", axis=1).reset_index(drop=True)
+        return pairs[new_feature_names]
 
 
 class ConcatFeatureTransformer(AbstractFeatureTransformer):
