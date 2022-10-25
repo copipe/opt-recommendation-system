@@ -69,7 +69,6 @@ class Retriever(metaclass=ABCMeta):
         Returns:
             Tuple[float, float, float]: (Theoretical max NDCG@K, Recall, Precision)
         """
-        # Extract only the data for the evaluation period
         df = period_extraction(df, self.eval_start_date, self.eval_end_date)
 
         # Remove other and (cv=1 and ad !=1). (cv:3, click:2, view:1, other:0)
@@ -158,6 +157,9 @@ class Retriever(metaclass=ABCMeta):
 
             # Add evaluator user label.
             pairs["rated"] = pairs["user_id"].isin(rated_users).astype(int)
+        else:
+            pairs["target"] = 0
+            pairs["rated"] = 0
 
         return pairs
 
@@ -167,7 +169,6 @@ class PopularItem(Retriever):
 
     def fit(self, df: cudf.DataFrame) -> None:
         """Aggregate the recent popular items."""
-
         # Extract only the data for the train period.
         df = period_extraction(df, self.train_start_date, self.train_end_date)
 
@@ -192,7 +193,6 @@ class FavoriteItem(Retriever):
 
     def fit(self, df: cudf.DataFrame) -> None:
         """Aggregate the recent favorite items."""
-
         # Extract only the data for the train period.
         df = period_extraction(df, self.train_start_date, self.train_end_date)
 
@@ -234,13 +234,13 @@ class CoOccurrenceItem(Retriever):
         self,
         df: cudf.DataFrame,
     ) -> None:
-
         # Extract only the data for the train period.
         df = period_extraction(
             df,
             self.train_start_date,
             self.train_end_date,
         )
+
         # Remove other. (cv:3, click:2, view:1, other:0)
         df = df[df["event_type"] > 0]
 
@@ -265,9 +265,11 @@ class CoOccurrenceItem(Retriever):
         df = df.groupby("user_id").agg({"product_id": list})
         df = df.reset_index()
         for user_id, items in df.to_pandas().values:
-            items = order_immutable_deduplication(items.tolist())[: self.top_n]
-            items = [self.co_occur_items.get(item, []) for item in items]
-            self.candidate_items[user_id] = flatten_2d_list(items)[: self.top_n]
+            n = max(self.top_n // len(items), 20)
+            items = order_immutable_deduplication(items.tolist())
+            items = [self.co_occur_items.get(item, [])[:n] for item in items]
+            items = order_immutable_deduplication(flatten_2d_list(items))[: self.top_n]
+            self.candidate_items[user_id] = items
 
     def search(self, users: List[str]):
         for user in users:
