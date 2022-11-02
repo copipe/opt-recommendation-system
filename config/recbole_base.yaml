@@ -1,0 +1,80 @@
+# Environment Settings
+gpu_id: '0'                     # (str) The id of GPU device(s).
+worker: 8                       # (int) The number of workers processing the data.
+use_gpu: True                   # (bool) Whether or not to use GPU.
+seed: 2022                      # (int) Random seed.
+state: INFO                     # (str) Logging level.
+reproducibility: True           # (bool) Whether or not to make results reproducible.
+data_path: 'data/processed'     # (str) The path of input dataset.
+checkpoint_dir: 'model/recbole' # (str) The path to save checkpoint file.
+show_progress: True             # (bool) Whether or not to show the progress bar of every epoch. 
+save_dataset: True              # (bool) Whether or not to save filtered dataset.
+dataset_save_path: ~            # (str) The path of saved dataset.
+save_dataloaders: True          # (bool) Whether or not save split dataloaders.
+dataloaders_save_path: ~        # (str) The path of saved dataloaders.
+log_wandb: False                # (bool) Whether or not to use Weights & Biases(W&B).
+wandb_project: 'recbole'        # (str) The project to conduct experiments in W&B.
+shuffle: True                   # (bool) Whether or not to shuffle the training data before each epoch.
+
+# Training Settings
+epochs: 100                     # (int) The number of training epochs.
+train_batch_size: 256           # (int) The training batch size.
+learner: adam                   # (str) The name of used optimizer.
+learning_rate: 0.001            # (float) Learning rate.
+train_neg_sample_args:          # (dict) Negative sampling configuration for model training.
+  distribution: uniform         # (str) The distribution of negative items.
+  sample_num: 1                 # (int) The sampled num of negative items.
+  alpha: 1.0                    # (float) The power of sampling probability for popularity distribution.
+  dynamic: False                # (bool) Whether to use dynamic negative sampling.
+  candidate_num: 0              # (int) The number of candidate negative items when dynamic negative sampling.
+eval_step: 1000                 # (int) The number of training epochs before an evaluation on the valid dataset.
+stopping_step: 1000             # (int) The threshold for validation-based early stopping.
+clip_grad_norm: ~               # (dict) The args of clip_grad_norm_ which will clip gradient norm of model. 
+weight_decay: 0.0               # (float) The weight decay value (L2 penalty) for optimizers.
+loss_decimal_place: 4           # (int) The decimal place of training loss.
+require_pow: False              # (bool) Whether or not to perform power operation in EmbLoss.
+enable_amp: False               # (bool) Whether or not to use mixed precision training.
+enable_scaler: False            # (bool) Whether or not to use GradScaler in mixed precision training.
+transform: ~                    # (str) The transform operation for batch data process.
+
+# Evaluation Settings
+eval_args:                      # (dict) 4 keys: group_by, order, split, and mode
+  split: {'RS':[1.0,0.0,0.0]}   # (dict) The splitting strategy ranging in ['RS','LS'].
+  group_by: user                # (str) The grouping strategy ranging in ['user', 'none'].
+  order: RO                     # (str) The ordering strategy ranging in ['RO', 'TO'].
+  mode: full                    # (str) The evaluation mode ranging in ['full','unixxx','popxxx','labeled'].
+repeatable: False               # (bool) Whether to evaluate results with a repeatable recommendation scene. 
+metrics: ["Recall","MRR","NDCG","Hit","Precision"]  # (list or str) Evaluation metrics.
+topk: [10]                      # (list or int or None) The value of k for topk evaluation metrics.
+valid_metric: MRR@10            # (str) The evaluation metric for early stopping. 
+valid_metric_bigger: True       # (bool) Whether to take a bigger valid metric value as a better result.
+eval_batch_size: 1024  # (int) The evaluation batch size.
+metric_decimal_place: 4         # (int) The decimal place of metric scores.
+
+# Dataset Settings
+field_separator: "\t"           # (str) Separator of different columns in atomic files.
+seq_separator: " "              # (str) Separator inside the sequence features.
+USER_ID_FIELD: user_id          # (str) Field name of user ID feature.
+ITEM_ID_FIELD: item_id          # (str) Field name of item ID feature.
+RATING_FIELD: rating            # (str) Field name of rating feature.
+TIME_FIELD: timestamp           # (str) Field name of timestamp feature.
+seq_len: ~                      # (dict) Field name of sequence feature: maximum length of each sequence
+LABEL_FIELD: label              # (str) Expected field name of the generated labels for point-wise dataLoaders. 
+threshold: ~                    # (dict) 0/1 labels will be generated according to the pairs.
+NEG_PREFIX: neg_                # (str) Negative sampling prefix for pair-wise dataLoaders.
+load_col:                       # (dict) The suffix of atomic files: (list) field names to be loaded.
+    inter: [user_id, item_id, rating, timestamp]
+unload_col: ~                   # (dict) The suffix of atomic files: (list) field names NOT to be loaded.
+unused_col: ~                   # (dict) The suffix of atomic files: (list) field names which are loaded but not used.
+rm_dup_inter: ~                 # (str) Whether to remove duplicated user-item interactions.
+val_interval: ~                 # (dict) Filter inter by values in {value field (str): interval (str)}.
+filter_inter_by_user_or_item: True    # (bool) Whether or not to filter inter by user or item.
+user_inter_num_interval: '[1, inf)'      # (str) User interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
+item_inter_num_interval: '[5, inf)'      # (str) Item interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
+alias_of_user_id: ~             # (list) Fields' names remapped into the same index system with USER_ID_FIELD.
+alias_of_item_id: ~             # (list) Fields' names remapped into the same index system with ITEM_ID_FIELD.
+alias_of_entity_id: ~           # (list) Fields' names remapped into the same index system with ENTITY_ID_FIELD.
+alias_of_relation_id: ~         # (list) Fields' names remapped into the same index system with RELATION_ID_FIELD.
+preload_weight: ~               # (dict) Preloaded weight in {IDs (token): pretrained vectors (float-like)}.
+normalize_field: ~              # (list) List of filed names to be normalized.
+normalize_all: True            # (bool) Whether or not to normalize all the float like fields.

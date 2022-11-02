@@ -1,0 +1,12 @@
+# Environment Settings
+checkpoint_dir: 'model/item2vec'    # (str) The path to save checkpoint file.
+
+# Model Settings
+vector_size: 128
+item2vec_epochs: 50
+ns_exponent: 0.0
+min_count: 5
+normalize: True
+
+# Training Settings
+epochs: 1                       # (int) The number of training epochs.

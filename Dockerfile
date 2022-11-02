@@ -7,6 +7,7 @@ ARG UID=1000
 ARG GID=1000
 ARG USER_DIRECTORY=/home/${USER_NAME}
 ARG APPLICATION_DIRECTORY=/home/${USER_NAME}/${PROJECT_NAME}
+ARG RECBOLE_DIRECTORY=/home/${USER_NAME}/${PROJECT_NAME}/RecBole
 
 ENV DEBIAN_FRONTEND="noninteractive" \
     LC_ALL="C.UTF-8" \
@@ -25,6 +26,3 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 WORKDIR ${APPLICATION_DIRECTORY}
-
-
-RUN pip install gensim catboost jupyterlab jupyterlab-vim

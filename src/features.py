@@ -10,45 +10,37 @@ from src.utils import order_immutable_deduplication, period_extraction
 
 
 class AbstractFeatureTransformer(metaclass=ABCMeta):
-    def __init__(
-        self,
-        start_date: pd.Timestamp,
-        end_date: pd.Timestamp,
-    ):
-        self.start_date = start_date
-        self.end_date = end_date
+    def __init__(self):
         self.name = self.__class__.__name__
 
-    def fit_transform(self, df: cudf.DataFrame, pairs: cudf.DataFrame):
+    def fit_transform(self, df: pd.DataFrame, pairs: pd.DataFrame):
         self.fit(df, pairs)
         return self.transform(df, pairs)
 
     @abstractmethod
-    def fit(self, df: cudf.DataFrame, pairs: cudf.DataFrame):
+    def fit(self, df: pd.DataFrame, pairs: pd.DataFrame):
         pass
 
     @abstractmethod
-    def transform(self, df: cudf.DataFrame, pairs: cudf.DataFrame) -> cudf.DataFrame:
+    def transform(self, df: pd.DataFrame, pairs: pd.DataFrame) -> pd.DataFrame:
         pass
 
 
 class UserActionScore(AbstractFeatureTransformer):
     def __init__(
         self,
-        start_date: pd.Timestamp,
-        end_date: pd.Timestamp,
         decay_rate: int = 1.0,
     ):
-        super().__init__(start_date, end_date)
+        super().__init__()
         self.decay_rate = decay_rate
 
-    def fit(self, df: cudf.DataFrame, pairs: cudf.DataFrame):
+    def fit(self, df: pd.DataFrame, pairs: pd.DataFrame):
         pass
 
-    def transform(self, df: cudf.DataFrame, pairs: cudf.DataFrame) -> cudf.DataFrame:
-        df = period_extraction(df, self.start_date, self.end_date)
-        df["day_diff"] = (self.end_date - df["time_stamp"]) / np.timedelta64(1, "D")
+    def transform(self, df: pd.DataFrame, pairs: pd.DataFrame) -> pd.DataFrame:
+        end_date = df["time_stamp"].max()
         decay_rate = self.decay_rate
+        df["day_diff"] = (end_date - df["time_stamp"]) / np.timedelta64(1, "D")
         df["weight_decay"] = df["day_diff"].apply(lambda x: decay_rate**x)
 
         action_list = [
@@ -65,7 +57,7 @@ class UserActionScore(AbstractFeatureTransformer):
             feature = df.groupby("user_id")["score"].sum().reset_index()
             feature = feature.rename(columns={"score": feature_name})
 
-            pairs = cudf.merge(pairs, feature, how="left", on="user_id")
+            pairs = pd.merge(pairs, feature, how="left", on="user_id")
             pairs[feature_name] = pairs[feature_name].fillna(0)
             new_feature_names.append(feature_name)
         pairs = pairs.sort_values("index").drop("index", axis=1).reset_index(drop=True)

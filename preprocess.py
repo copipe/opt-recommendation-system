@@ -9,6 +9,14 @@ CONFIG_PATH = "config/preprocess.yaml"
 
 
 def concat_train_dataframes(train_dir: Path) -> pd.DataFrame:
+    """Concat train data (splited by 4 categories).
+
+    Args:
+        train_dir (Path): Train data directory.
+
+    Returns:
+        pd.DataFrame: Train data with 4files combined.
+    """
     train_dataframes = []
     for data_path in train_dir.iterdir():
         train = pd.read_csv(data_path, delimiter="\t")
@@ -19,6 +27,14 @@ def concat_train_dataframes(train_dir: Path) -> pd.DataFrame:
 
 
 def recbole_formatter(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert train data to recbole format.
+
+    Args:
+        df (pd.DataFrame): Train data.
+
+    Returns:
+        pd.DataFrame: Formated train data.
+    """
     usecols = ["user_id", "product_id", "event_type", "time_stamp"]
     for col in usecols:
         assert col in df.columns, f"Input dataframe(df) must have '{col}' column."
@@ -36,7 +52,16 @@ def recbole_formatter(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def label_formatter(df_train, df_eval):
+def label_formatter(df_train: pd.DataFrame, df_eval: pd.DataFrame) -> pd.DataFrame:
+    """Create a label table for evaluation.
+
+    Args:
+        df_train (pd.DataFrame): Data for the train period. Used for user filtering..
+        df_eval (pd.DataFrame): Data for the evaluation period.
+
+    Returns:
+        pd.DataFrame: Label data containing columns of "user_id", "event_type", "product_id"
+    """
     # Remove other and (cv=1 and ad !=1). (cv:3, click:2, view:1, other:0)
     df_eval = df_eval[df_eval["event_type"] > 0]
     df_eval = df_eval[(df_eval["event_type"] != 3) | (df_eval["ad"] == 1)]
@@ -73,7 +98,7 @@ if __name__ == "__main__":
     output_dir = Path(config["processed_data_dir"])
     train_dir = Path(config["input_data_dir"]) / "train"
 
-    # Save concatenated train dataframe.
+    # Save concatenated train data.
     df = concat_train_dataframes(train_dir)
     df.to_pickle(output_dir / "train.pickle")
 
@@ -85,6 +110,9 @@ if __name__ == "__main__":
         # Split data.
         df_train = period_extraction(df, train_start, train_end)
         df_eval = period_extraction(df, eval_start, eval_end)
+
+        # Save train data.
+        df_train.to_pickle(output_dir / f"train_{date_th}_t{train_period}.pickle")
 
         # Save recbole formatted train data.
         df_train_recbole = recbole_formatter(df_train)
