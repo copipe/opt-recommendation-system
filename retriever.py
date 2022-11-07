@@ -10,6 +10,7 @@ from src.retriever import (
     ConcatRetriever,
     CoOccurrenceItem,
     FavoriteItem,
+    Item2VecCF,
     PopularItem,
     RecBoleCF,
 )
@@ -29,6 +30,10 @@ def get_retriever_config(config: Dict, date_th: str) -> Dict[str, Dict]:
         **config["co_occurence_item"],
     }
 
+    # Prepare config of item2vec-cf retriever.
+    item2vec_config = config["item2vec"].copy()
+    item2vec_config["model_path"] = item2vec_config["model_path"][date_th]
+
     # Prepare config of recbole-bpr retriever.
     bpr_config = config["recbole_bpr"].copy()
     bpr_config["checkpoint_path"] = bpr_config["checkpoint_path"][date_th]
@@ -44,19 +49,14 @@ def get_retriever_config(config: Dict, date_th: str) -> Dict[str, Dict]:
     recvae_config["checkpoint_path"] = recvae_config["checkpoint_path"][date_th]
     recvae_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
 
-    # Prepare config of recbole-item2vec retriever.
-    item2vec_config = config["recbole_item2vec"].copy()
-    item2vec_config["checkpoint_path"] = item2vec_config["checkpoint_path"][date_th]
-    item2vec_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-
     retriever_config = {
         "popular_item": config["popular_item"],
         "favorite_item": config["favorite_item"],
         "co_occurence_item": co_occurence_config,
+        "item2vec_item": item2vec_config,
         "recbole_bpr": bpr_config,
         "recbole_itemknn": itemknn_config,
         "recbole_recvae": recvae_config,
-        "recbole_item2vec": item2vec_config,
     }
     return retriever_config
 
@@ -76,13 +76,13 @@ def get_retriever(config: Dict, date_th: str) -> ConcatRetriever:
 
     # Define concat retriever.
     retrievers = [
-        # FavoriteItem(**retriever_config["favorite_item"]),
-        # CoOccurrenceItem(**retriever_config["co_occurence_item"]),
-        # RecBoleCF(**retriever_config["recbole_bpr"]),
-        # RecBoleCF(**retriever_config["recbole_itemknn"]),
+        FavoriteItem(**retriever_config["favorite_item"]),
+        CoOccurrenceItem(**retriever_config["co_occurence_item"]),
+        RecBoleCF(**retriever_config["recbole_bpr"]),
+        RecBoleCF(**retriever_config["recbole_itemknn"]),
         RecBoleCF(**retriever_config["recbole_recvae"]),
-        # RecBoleCF(**retriever_config["recbole_item2vec"]),
-        # PopularItem(**retriever_config["popular_item"]),
+        Item2VecCF(**retriever_config["item2vec_item"]),
+        PopularItem(**retriever_config["popular_item"]),
     ]
     concat_retriever_config = {"retrievers": retrievers, **config["concat_retriever"]}
     return ConcatRetriever(**concat_retriever_config)

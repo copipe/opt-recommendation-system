@@ -10,6 +10,7 @@ import cudf
 import numpy as np
 import pandas as pd
 import torch
+from gensim.models import word2vec
 from recbole.config import Config
 from recbole.data import create_dataset, data_preparation
 from recbole.data.interaction import Interaction
@@ -424,3 +425,82 @@ class RecBoleCF(Retriever):
         _ = trainer.fit(
             train_data, valid_data, saved=True, show_progress=config["show_progress"]
         )
+
+
+class Item2VecCF(Retriever):
+    def __init__(
+        self,
+        model_path: Path,
+        top_n: int = 10,
+        vector_size: int = 128,
+        window: int = 5,
+        epochs: int = 10,
+        ns_exponent: float = 0.75,
+        min_count: int = 5,
+        seed: int = 0,
+        workers: int = 8,
+    ) -> None:
+        super().__init__(top_n)
+        self.model_path = Path(model_path)
+        self.vector_size = vector_size
+        self.window = window
+        self.epochs = epochs
+        self.ns_exponent = ns_exponent
+        self.seed = seed
+        self.min_count = min_count
+        self.workers = workers
+
+    def fit(
+        self,
+        df: pd.DataFrame,
+    ) -> None:
+
+        df = df.sort_values(["user_id", "time_stamp"], ascending=False)
+        df = df.groupby("user_id").agg({"product_id": list})
+        df = df.reset_index()
+
+        if not self.model_path.exists():
+            self._train_item2vec(df)
+
+        with open(self.model_path, "rb") as f:
+            similar_items = pickle.load(f)["similar_items"]
+
+        for user_id, items in tqdm(df.values):
+            n = max(self.top_n // len(items), 10)
+            items = order_immutable_deduplication(items)
+            items = [similar_items.get(item, [])[:n] for item in items]
+            items = order_immutable_deduplication(flatten_2d_list(items))
+            self.candidate_items[user_id] = items[: self.top_n]
+
+    def search(self, users: List[str]) -> None:
+        for user in users:
+            if user not in self.candidate_items:
+                self.candidate_items[user] = []
+        self.candidate_items = {user: self.candidate_items[user] for user in users}
+
+    def _train_item2vec(self, df: pd.DataFrame) -> None:
+
+        item2vec = word2vec.Word2Vec(
+            df["product_id"].values.tolist(),
+            vector_size=self.vector_size,
+            window=self.window,
+            epochs=self.epochs,
+            ns_exponent=self.ns_exponent,
+            seed=self.seed,
+            min_count=self.min_count,
+            workers=self.workers,
+        )
+
+        similar_items: Dict[str, List[str]] = {}
+        items = item2vec.wv.index_to_key
+        for item in tqdm(items):
+            topn_similar_items = item2vec.wv.most_similar(item, topn=200)
+            similar_items[item] = [item for item, score in topn_similar_items]
+
+        self.model_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.model_path, "wb") as f:
+            result = {
+                "model": item2vec,
+                "similar_items": similar_items,
+            }
+            pickle.dump(result, f)

@@ -22,6 +22,20 @@ favorite_item:
 co_occurence_item:
   top_n: 200
 
+item2vec:
+  model_path:
+    '2017-04-16': 'model/item2vec/item2vec_2017-04-16.pickle'
+    '2017-04-23': 'model/item2vec/item2vec_2017-04-23.pickle'
+    '2017-04-30': 'model/item2vec/item2vec_2017-04-30.pickle'
+  top_n: 50
+  vector_size: 128
+  window: 5
+  epochs: 30
+  ns_exponent: 0.0
+  seed: 0
+  min_count: 5
+  workers: 8
+
 recbole_bpr:
   model_name: 'BPR'
   config_file_list:
@@ -55,18 +69,6 @@ recbole_recvae:
     '2017-04-16': 'model/recvae/recvae_2017-04-16.pth'
     '2017-04-23': 'model/recvae/recvae_2017-04-23.pth'
     '2017-04-30': 'model/recvae/recvae_2017-04-30.pth'
-  batch_size: 64
-  top_n: 50
-
-recbole_item2vec:
-  model_name: 'Item2Vec'
-  config_file_list:
-    - 'config/recbole_base.yaml'
-    - 'config/recbole_item2vec.yaml'
-  checkpoint_path:
-    '2017-04-16': 'model/item2vec/item2vec_2017-04-16.pth'
-    '2017-04-23': 'model/item2vec/item2vec_2017-04-23.pth'
-    '2017-04-30': 'model/item2vec/item2vec_2017-04-30.pth'
   batch_size: 64
   top_n: 50
 

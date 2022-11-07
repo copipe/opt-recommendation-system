@@ -1,0 +1,79 @@
+# Features Settings
+test_data_path: 'data/raw/test.tsv'
+preprocessed_data_dir: 'data/processed'    # (str) Directory of preprocessed data.
+pairs_dir: 'data/pairs'                    # (str) Directory of user-item pairs (candidates for ranking).
+pairs_file_suffix: 'baseline'
+features_dir: 'data/features'              # (str) Directory of user-item pairs (candidates for ranking).
+features_file_suffix: 'baseline'
+
+date_th:                                   # (str) List of boundary between train period and evaluation period.
+  - '2017-04-16'
+  - '2017-04-23'
+  - '2017-04-30'
+train_period: 14                           # (int) Number of days of train period.
+eval_period: 7                             # (int) Number of days of evaluation period.
+
+recent_action_frequency1:
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_frequency/dr10_t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/recent_action_frequency/dr10_t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/recent_action_frequency/dr10_t14_2017-04-30.pickle'
+  decay_rate: 1.0
+
+recent_action_frequency2:
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_frequency/dr08_t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/recent_action_frequency/dr08_t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/recent_action_frequency/dr08_t14_2017-04-30.pickle'
+  decay_rate: 0.8
+
+item_attribute:
+  save_file_path:
+    '2017-04-16': 'data/features/item_attribute/t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/item_attribute/t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/item_attribute/t14_2017-04-30.pickle'
+
+recbole_bpr:
+  model_name: 'BPR'
+  batch_size: 64
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_bpr.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/bpr/bpr_2017-04-16.pth'
+    '2017-04-23': 'model/bpr/bpr_2017-04-23.pth'
+    '2017-04-30': 'model/bpr/bpr_2017-04-30.pth'
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_bpr/t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/recbole_bpr/t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/recbole_bpr/t14_2017-04-30.pickle'
+
+recbole_itemknn:
+  model_name: 'ItemKNN'
+  batch_size: 64
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_itemknn.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/itemknn/itemknn_2017-04-16.pth'
+    '2017-04-23': 'model/itemknn/itemknn_2017-04-23.pth'
+    '2017-04-30': 'model/itemknn/itemknn_2017-04-30.pth'
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_itemknn/t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/recbole_itemknn/t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/recbole_itemknn/t14_2017-04-30.pickle'
+
+recbole_recvae:
+  model_name: 'RecVAE'
+  batch_size: 16
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_recvae.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/recvae/recvae_2017-04-16.pth'
+    '2017-04-23': 'model/recvae/recvae_2017-04-23.pth'
+    '2017-04-30': 'model/recvae/recvae_2017-04-30.pth'
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_recvae/t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/recbole_recvae/t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/recbole_recvae/t14_2017-04-30.pickle'
