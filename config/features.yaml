@@ -84,22 +84,6 @@ recbole_recvae:
     '2017-04-23': 'data/features/recbole_recvae/t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/recbole_recvae/t14_2017-04-30.pickle'
 
-#recbole_neumf:
-#  model_name: 'NeuMF'
-#  batch_size: 16
-#  config_file_list:
-#    - 'config/recbole_base.yaml'
-#    - 'config/recbole_neumf.yaml'
-#  checkpoint_path:
-#    '2017-04-16': 'model/neumf/neumf_2017-04-16.pth'
-#    '2017-04-23': 'model/neumf/neumf_2017-04-23.pth'
-#    '2017-04-30': 'model/neumf/neumf_2017-04-30.pth'
-#  save_file_path:
-#    '2017-04-16': 'data/features/recbole_neumf/t14_2017-04-16.pickle'
-#    '2017-04-23': 'data/features/recbole_neumf/t14_2017-04-23.pickle'
-#    '2017-04-30': 'data/features/recbole_neumf/t14_2017-04-30.pickle'
-#
-
 recent_action_items:
   save_file_path:
     '2017-04-16': 'data/features/recent_action_items/n5_t14_2017-04-16.pickle'
@@ -122,21 +106,6 @@ recbole_item2item_sim_bpr:
     '2017-04-23': 'data/features/recbole_item2item_sim_bpr/t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/recbole_item2item_sim_bpr/t14_2017-04-30.pickle'
 
-#recbole_item2item_sim_neumf:
-#  model_name: 'NeuMF'
-#  batch_size: 64
-#  config_file_list:
-#    - 'config/recbole_base.yaml'
-#    - 'config/recbole_neumf.yaml'
-#  checkpoint_path:
-#    '2017-04-16': 'model/neumf/neumf_2017-04-16.pth'
-#    '2017-04-23': 'model/neumf/neumf_2017-04-23.pth'
-#    '2017-04-30': 'model/neumf/neumf_2017-04-30.pth'
-#  save_file_path:
-#    '2017-04-16': 'data/features/recbole_item2item_sim_neumf/t14_2017-04-16.pickle'
-#    '2017-04-23': 'data/features/recbole_item2item_sim_neumf/t14_2017-04-23.pickle'
-#    '2017-04-30': 'data/features/recbole_item2item_sim_neumf/t14_2017-04-30.pickle'
-
 item2vec_item2item_sim:
   batch_size: 10240
   model_path:
@@ -155,7 +124,7 @@ item2vec_item2item_sim:
     '2017-04-23': 'data/features/item2vec_item2item_sim/t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/item2vec_item2item_sim/t14_2017-04-30.pickle'
 
-co_occur_items1:
+co_occur_items:
   save_file_path:
     '2017-04-16': 'data/features/co_occur_items/n5_t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/co_occur_items/n5_t14_2017-04-23.pickle'
@@ -166,69 +135,10 @@ co_occur_items1:
     '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t14.pickle'
     '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t14.pickle'
 
-#co_occur_items2:
-#  save_file_path:
-#    '2017-04-16': 'data/features/co_occur_items/n15_t14_2017-04-16.pickle'
-#    '2017-04-23': 'data/features/co_occur_items/n15_t14_2017-04-23.pickle'
-#    '2017-04-30': 'data/features/co_occur_items/n15_t14_2017-04-30.pickle'
-#  n_items: 15
-#  co_occur_items_path:
-#    '2017-04-16': 'model/co_occur_items/co-occurrence_2017-04-16_t14.pickle'
-#    '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t14.pickle'
-#    '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t14.pickle'
-
-recent_action_sim_items1:
+recent_action_sim_items:
   decay_rates: [1.0]
   save_file_path:
     '2017-04-16': 'data/features/recent_action_sim_items/n5_t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/recent_action_sim_items/n5_t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/recent_action_sim_items/n5_t14_2017-04-30.pickle'
   #co_occur_items_config: co_occur_items1
-
-#recent_action_sim_items2:
-#  decay_rates: [0.8, 1.0]
-#  save_file_path:
-#    '2017-04-16': 'data/features/recent_action_sim_items/n15_t14_2017-04-16.pickle'
-#    '2017-04-23': 'data/features/recent_action_sim_items/n15_t14_2017-04-23.pickle'
-#    '2017-04-30': 'data/features/recent_action_sim_items/n15_t14_2017-04-30.pickle'
-#  #co_occur_items_config: co_occur_items2
-
-recent_action_items_by_action:
-  save_file_path:
-    '2017-04-16': 'data/features/recent_action_items_by_action/n5_t14_2017-04-16.pickle'
-    '2017-04-23': 'data/features/recent_action_items_by_action/n5_t14_2017-04-23.pickle'
-    '2017-04-30': 'data/features/recent_action_items_by_action/n5_t14_2017-04-30.pickle'
-  n_items: 5
-
-recbole_item2item_sim_bpr_by_action:
-  model_name: 'BPR'
-  batch_size: 512
-  config_file_list:
-    - 'config/recbole_base.yaml'
-    - 'config/recbole_bpr.yaml'
-  checkpoint_path:
-    '2017-04-16': 'model/bpr/bpr_2017-04-16.pth'
-    '2017-04-23': 'model/bpr/bpr_2017-04-23.pth'
-    '2017-04-30': 'model/bpr/bpr_2017-04-30.pth'
-  save_file_path:
-    '2017-04-16': 'data/features/recbole_item2item_sim_bpr_by_action/t14_2017-04-16.pickle'
-    '2017-04-23': 'data/features/recbole_item2item_sim_bpr_by_action/t14_2017-04-23.pickle'
-    '2017-04-30': 'data/features/recbole_item2item_sim_bpr_by_action/t14_2017-04-30.pickle'
-
-item2vec_item2item_sim_by_action:
-  batch_size: 10240
-  model_path:
-    '2017-04-16': 'model/item2vec/item2vec_2017-04-16.pickle'
-    '2017-04-23': 'model/item2vec/item2vec_2017-04-23.pickle'
-    '2017-04-30': 'model/item2vec/item2vec_2017-04-30.pickle'
-  vector_size: 128
-  window: 5
-  epochs: 30
-  ns_exponent: 0.0
-  seed: 0
-  min_count: 5
-  workers: 8
-  save_file_path:
-    '2017-04-16': 'data/features/item2vec_item2item_sim_by_action/t14_2017-04-16.pickle'
-    '2017-04-23': 'data/features/item2vec_item2item_sim_by_action/t14_2017-04-23.pickle'
-    '2017-04-30': 'data/features/item2vec_item2item_sim_by_action/t14_2017-04-30.pickle'
