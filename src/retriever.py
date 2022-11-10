@@ -105,10 +105,14 @@ class Retriever(metaclass=ABCMeta):
         """
         users = []
         candidates = []
+        rank = []
         for user, items in self.candidate_items.items():
             users += [user] * len(items)
             candidates += items
-        pairs = pd.DataFrame({"user_id": users, "product_id": candidates})
+            rank += list(range(len(items)))
+        pairs = pd.DataFrame(
+            {"user_id": users, "product_id": candidates, f"{self.name}_rank": rank}
+        )
 
         if isinstance(label, pd.DataFrame):
             user_ids = []
@@ -183,11 +187,11 @@ class FavoriteItem(Retriever):
 class CoOccurrenceItem(Retriever):
     def __init__(
         self,
-        co_occur_items_path: Path,
+        co_occur_items_path: str,
         top_n: int = 10,
     ) -> None:
         super().__init__(top_n)
-        self.co_occur_items_path = co_occur_items_path
+        self.co_occur_items_path = Path(co_occur_items_path)
 
     def fit(
         self,
@@ -235,94 +239,6 @@ class CoOccurrenceItem(Retriever):
         self.co_occur_items_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.co_occur_items_path, "wb") as f:
             pickle.dump(self.co_occur_items, f)
-
-
-class ConcatRetriever(Retriever):
-    def __init__(
-        self,
-        retrievers: List[Retriever],
-        top_n: int = 10,
-    ) -> None:
-        super().__init__(top_n)
-        self.retrievers = retrievers
-
-    def fit(self, df: pd.DataFrame) -> None:
-
-        for retriever in self.retrievers:
-            print(f"{retriever.name} fitting...")
-            retriever.fit(df)
-            gc.collect()
-            torch.cuda.empty_cache()
-
-    def search(self, users: List[str]) -> None:
-        self.candidate_items = {user: [] for user in users}
-        for retriever in self.retrievers:
-            retriever.search(users)
-            for user in users:
-                items = self.candidate_items[user]
-                items += retriever.candidate_items[user]
-                items = order_immutable_deduplication(items)
-                self.candidate_items[user] = items[: self.top_n]
-
-    def evaluate(
-        self,
-        label: pd.DataFrame,
-        k=22,
-        verbose: bool = True,
-    ) -> Tuple[float, float, float]:
-
-        for retriever in self.retrievers:
-            _ = self._evaluate(retriever, label, k, verbose)
-            gc.collect()
-            torch.cuda.empty_cache()
-        max_ndcg, recall, precision = self._evaluate(self, label, k, verbose)
-        return max_ndcg, recall, precision
-
-    def _evaluate(
-        self,
-        retriever: Retriever,
-        label: pd.DataFrame,
-        k=22,
-        verbose: bool = True,
-    ) -> Tuple[float, float, float]:
-        """Evaluate the Retriever method.
-
-        Args:
-            df (cudf.DataFrame): Preprocessed data.
-            k (int): When calculating ndcg, up to the top k are evaluated. Defaults to 22.
-            verbose (bool): Verbosity mode.
-
-        Returns:
-            Tuple[float, float, float]: (Theoretical max NDCG@K, Recall, Precision)
-        """
-        # Calculate 3 evaluation indexes (Theoritical max NDCG@K, Recall, Precision)
-        n_users = 0
-        sum_n_items = 0
-        sum_max_ndcg = 0
-        sum_recall = 0
-        sum_precision = 0
-        for user_id, true_scores, true_items in label.values:
-            pred_items = retriever.candidate_items.get(user_id, [])
-            true_scores = np.array(true_scores)
-            pred_scores = true_scores[np.isin(true_items, pred_items)]
-
-            n_users += 1
-            sum_n_items += len(pred_items)
-            sum_max_ndcg += ndcg_score(true_scores, pred_scores, k)
-            sum_recall += recall_score(true_items, pred_items)
-            sum_precision += precision_score(true_items, pred_items)
-        n_items = sum_n_items / n_users
-        max_ndcg = sum_max_ndcg / n_users
-        recall = sum_recall / n_users
-        precision = sum_precision / n_users
-        if verbose:
-            msg = (
-                f"[{retriever.name}] "
-                f"n={n_users:,}, n_items={n_items:.1f} "
-                f"max_ndcg={max_ndcg:.4f}, recall={recall:.4f}, precision={precision:.4f}"
-            )
-            print(msg)
-        return max_ndcg, recall, precision
 
 
 class RecBoleCF(Retriever):
@@ -384,7 +300,8 @@ class RecBoleCF(Retriever):
 
             # model inference
             pred = model.full_sort_predict(data).view(len(data), -1).to("cuda")
-            _, batch_items = torch.topk(pred, self.top_n, dim=1)
+            _, batch_items = torch.topk(pred[:, 1:], self.top_n, dim=1)
+            batch_items = batch_items + 1  # TO Remove "[PAD]"
             batch_items = batch_items.to("cpu").detach().numpy()
             batch_items = item_id2token[batch_items].tolist()
             batch_candidates = dict(zip(batch_user_ids, batch_items))
@@ -504,3 +421,133 @@ class Item2VecCF(Retriever):
                 "similar_items": similar_items,
             }
             pickle.dump(result, f)
+
+
+class ConcatRetriever(Retriever):
+    def __init__(
+        self,
+        retrievers: List[Retriever],
+        top_n: int = 10,
+    ) -> None:
+        super().__init__(top_n)
+        self.retrievers = retrievers
+
+    def fit(self, df: pd.DataFrame) -> None:
+
+        for retriever in self.retrievers:
+            print(f"{retriever.name} fitting...")
+            retriever.fit(df)
+            gc.collect()
+            torch.cuda.empty_cache()
+
+    def search(self, users: List[str]) -> None:
+        self.candidate_items = {user: [] for user in users}
+        for retriever in self.retrievers:
+            retriever.search(users)
+            for user in users:
+                items = self.candidate_items[user]
+                items += retriever.candidate_items[user]
+                items = order_immutable_deduplication(items)
+                self.candidate_items[user] = items[: self.top_n]
+
+    def evaluate(
+        self,
+        label: pd.DataFrame,
+        k=22,
+        verbose: bool = True,
+    ) -> Tuple[float, float, float]:
+
+        for retriever in self.retrievers:
+            _ = self._evaluate(retriever, label, k, verbose)
+            gc.collect()
+            torch.cuda.empty_cache()
+        max_ndcg, recall, precision = self._evaluate(self, label, k, verbose)
+        return max_ndcg, recall, precision
+
+    def _evaluate(
+        self,
+        retriever: Retriever,
+        label: pd.DataFrame,
+        k=22,
+        verbose: bool = True,
+    ) -> Tuple[float, float, float]:
+        """Evaluate the Retriever method.
+
+        Args:
+            df (cudf.DataFrame): Preprocessed data.
+            k (int): When calculating ndcg, up to the top k are evaluated. Defaults to 22.
+            verbose (bool): Verbosity mode.
+
+        Returns:
+            Tuple[float, float, float]: (Theoretical max NDCG@K, Recall, Precision)
+        """
+        # Calculate 3 evaluation indexes (Theoritical max NDCG@K, Recall, Precision)
+        n_users = 0
+        sum_n_items = 0
+        sum_max_ndcg = 0
+        sum_recall = 0
+        sum_precision = 0
+        for user_id, true_scores, true_items in label.values:
+            pred_items = retriever.candidate_items.get(user_id, [])
+            true_scores = np.array(true_scores)
+            pred_scores = true_scores[np.isin(true_items, pred_items)]
+
+            n_users += 1
+            sum_n_items += len(pred_items)
+            sum_max_ndcg += ndcg_score(true_scores, pred_scores, k)
+            sum_recall += recall_score(true_items, pred_items)
+            sum_precision += precision_score(true_items, pred_items)
+        n_items = sum_n_items / n_users
+        max_ndcg = sum_max_ndcg / n_users
+        recall = sum_recall / n_users
+        precision = sum_precision / n_users
+        if verbose:
+            msg = (
+                f"[{retriever.name}] "
+                f"n={n_users:,}, n_items={n_items:.1f} "
+                f"max_ndcg={max_ndcg:.4f}, recall={recall:.4f}, precision={precision:.4f}"
+            )
+            print(msg)
+        return max_ndcg, recall, precision
+
+    def get_pairs(self, label: pd.DataFrame | None = None) -> pd.DataFrame:
+        pairs = self._get_pairs(label)
+        for retriever in self.retrievers:
+            tmp_pairs = retriever.get_pairs(label).drop(["target"], axis=1)
+            pairs = pd.merge(pairs, tmp_pairs, how="left", on=["user_id", "product_id"])
+            pairs = pairs.fillna(-1)
+            del tmp_pairs
+            gc.collect()
+        return pairs
+
+    def _get_pairs(self, label: pd.DataFrame | None = None) -> pd.DataFrame:
+        users = []
+        candidates = []
+        for user, items in self.candidate_items.items():
+            users += [user] * len(items)
+            candidates += items
+        pairs = pd.DataFrame({"user_id": users, "product_id": candidates})
+
+        if isinstance(label, pd.DataFrame):
+            user_ids = []
+            event_types = []
+            product_ids = []
+            for uid, etype, pid in label.values:
+                assert len(etype) == len(pid)
+                user_ids += [uid] * len(etype)
+                event_types += etype
+                product_ids += pid
+            pairs_label = pd.DataFrame(
+                {
+                    "user_id": user_ids,
+                    "target": event_types,
+                    "product_id": product_ids,
+                }
+            )
+            pairs = pd.merge(
+                pairs, pairs_label, how="left", on=["user_id", "product_id"]
+            )
+            pairs["target"] = pairs["target"].fillna(0).astype(int)
+        else:
+            pairs["target"] = 0
+        return pairs
