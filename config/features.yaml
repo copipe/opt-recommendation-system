@@ -49,6 +49,11 @@ recbole_bpr:
     '2017-04-16': 'model/bpr/bpr_2017-04-16.pth'
     '2017-04-23': 'model/bpr/bpr_2017-04-23.pth'
     '2017-04-30': 'model/bpr/bpr_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
+
   save_file_path:
     '2017-04-16': 'data/features/recbole_bpr/t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/recbole_bpr/t14_2017-04-23.pickle'
@@ -64,6 +69,10 @@ recbole_itemknn:
     '2017-04-16': 'model/itemknn/itemknn_2017-04-16.pth'
     '2017-04-23': 'model/itemknn/itemknn_2017-04-23.pth'
     '2017-04-30': 'model/itemknn/itemknn_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
   save_file_path:
     '2017-04-16': 'data/features/recbole_itemknn/t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/recbole_itemknn/t14_2017-04-23.pickle'
@@ -79,17 +88,14 @@ recbole_recvae:
     '2017-04-16': 'model/recvae/recvae_2017-04-16.pth'
     '2017-04-23': 'model/recvae/recvae_2017-04-23.pth'
     '2017-04-30': 'model/recvae/recvae_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
   save_file_path:
     '2017-04-16': 'data/features/recbole_recvae/t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/recbole_recvae/t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/recbole_recvae/t14_2017-04-30.pickle'
-
-recent_action_items:
-  save_file_path:
-    '2017-04-16': 'data/features/recent_action_items/n5_t14_2017-04-16.pickle'
-    '2017-04-23': 'data/features/recent_action_items/n5_t14_2017-04-23.pickle'
-    '2017-04-30': 'data/features/recent_action_items/n5_t14_2017-04-30.pickle'
-  n_items: 5
 
 recbole_item2item_sim_bpr:
   model_name: 'BPR'
@@ -101,10 +107,20 @@ recbole_item2item_sim_bpr:
     '2017-04-16': 'model/bpr/bpr_2017-04-16.pth'
     '2017-04-23': 'model/bpr/bpr_2017-04-23.pth'
     '2017-04-30': 'model/bpr/bpr_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
   save_file_path:
     '2017-04-16': 'data/features/recbole_item2item_sim_bpr/t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/recbole_item2item_sim_bpr/t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/recbole_item2item_sim_bpr/t14_2017-04-30.pickle'
+  recent_action_items_config:
+    save_file_path:
+      '2017-04-16': 'data/features/recent_action_items/n5_t14_2017-04-16.pickle'
+      '2017-04-23': 'data/features/recent_action_items/n5_t14_2017-04-23.pickle'
+      '2017-04-30': 'data/features/recent_action_items/n5_t14_2017-04-30.pickle'
+    n_items: 5
 
 item2vec_item2item_sim:
   batch_size: 10240
@@ -123,17 +139,12 @@ item2vec_item2item_sim:
     '2017-04-16': 'data/features/item2vec_item2item_sim/t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/item2vec_item2item_sim/t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/item2vec_item2item_sim/t14_2017-04-30.pickle'
-
-co_occur_items:
-  save_file_path:
-    '2017-04-16': 'data/features/co_occur_items/n5_t14_2017-04-16.pickle'
-    '2017-04-23': 'data/features/co_occur_items/n5_t14_2017-04-23.pickle'
-    '2017-04-30': 'data/features/co_occur_items/n5_t14_2017-04-30.pickle'
-  n_items: 5
-  co_occur_items_path:
-    '2017-04-16': 'model/co_occur_items/co-occurrence_2017-04-16_t14.pickle'
-    '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t14.pickle'
-    '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t14.pickle'
+  recent_action_items_config:
+    save_file_path:
+      '2017-04-16': 'data/features/recent_action_items/n5_t14_2017-04-16.pickle'
+      '2017-04-23': 'data/features/recent_action_items/n5_t14_2017-04-23.pickle'
+      '2017-04-30': 'data/features/recent_action_items/n5_t14_2017-04-30.pickle'
+    n_items: 5
 
 recent_action_sim_items:
   decay_rates: [1.0]
@@ -141,4 +152,23 @@ recent_action_sim_items:
     '2017-04-16': 'data/features/recent_action_sim_items/n5_t14_2017-04-16.pickle'
     '2017-04-23': 'data/features/recent_action_sim_items/n5_t14_2017-04-23.pickle'
     '2017-04-30': 'data/features/recent_action_sim_items/n5_t14_2017-04-30.pickle'
-  #co_occur_items_config: co_occur_items1
+  co_occur_items_config:
+    save_file_path:
+      '2017-04-16': 'data/features/co_occur_items/n5_t14_2017-04-16.pickle'
+      '2017-04-23': 'data/features/co_occur_items/n5_t14_2017-04-23.pickle'
+      '2017-04-30': 'data/features/co_occur_items/n5_t14_2017-04-30.pickle'
+    n_items: 5
+    co_occur_items_path:
+      '2017-04-16': 'model/co_occur_items/co-occurrence_2017-04-16_t14.pickle'
+      '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t14.pickle'
+      '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t14.pickle'
+
+retriever_rank:
+  save_file_path:
+    '2017-04-16': 'data/features/retriever_rank/t14_2017-04-16.pickle'
+    '2017-04-23': 'data/features/retriever_rank/t14_2017-04-23.pickle'
+    '2017-04-30': 'data/features/retriever_rank/t14_2017-04-30.pickle'
+  pairs_rank_path:
+    '2017-04-16': 'data/pairs/pairs_rank_2017-04-16_t14_baseline.pickle'
+    '2017-04-23': 'data/pairs/pairs_rank_2017-04-23_t14_baseline.pickle'
+    '2017-04-30': 'data/pairs/pairs_rank_2017-04-30_t14_baseline.pickle'
