@@ -3,7 +3,6 @@ test_data_path: 'data/raw/test.tsv'
 preprocessed_data_dir: 'data/processed'    # (str) Directory of preprocessed data.
 pairs_dir: 'data/pairs'                    # (str) Directory of user-item pairs (candidates for ranking).
 pairs_file_suffix: 'baseline'
-co_occur_items_dir: 'model/co_occur_items' # (str) Directory of cooccurence item data. (used in CoOccurrenceItem Class)
 
 date_th:                                   # (str) List of boundary between train period and evaluation period.
   - '2017-04-16'
@@ -21,6 +20,10 @@ favorite_item:
 
 co_occurence_item:
   top_n: 200
+  co_occur_items_path:
+    '2017-04-16': 'model/co_occur_items/co-occurrence_2017-04-16_t14.pickle' 
+    '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t14.pickle' 
+    '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t14.pickle' 
 
 item2vec:
   model_path:
@@ -45,6 +48,10 @@ recbole_bpr:
     '2017-04-16': 'model/bpr/bpr_2017-04-16.pth'
     '2017-04-23': 'model/bpr/bpr_2017-04-23.pth'
     '2017-04-30': 'model/bpr/bpr_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
   batch_size: 64
   top_n: 50
 
@@ -57,6 +64,10 @@ recbole_itemknn:
     '2017-04-16': 'model/itemknn/itemknn_2017-04-16.pth'
     '2017-04-23': 'model/itemknn/itemknn_2017-04-23.pth'
     '2017-04-30': 'model/itemknn/itemknn_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
   batch_size: 64
   top_n: 50
 
@@ -69,6 +80,10 @@ recbole_recvae:
     '2017-04-16': 'model/recvae/recvae_2017-04-16.pth'
     '2017-04-23': 'model/recvae/recvae_2017-04-23.pth'
     '2017-04-30': 'model/recvae/recvae_2017-04-30.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14.pth'
+    '2017-04-23': 'recbole_2017-04-23_t14.pth'
+    '2017-04-30': 'recbole_2017-04-30_t14.pth'
   batch_size: 64
   top_n: 50
 
