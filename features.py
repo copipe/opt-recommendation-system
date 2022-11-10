@@ -1,6 +1,8 @@
+import argparse
 import gc
+from copy import deepcopy
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Set
 
 import pandas as pd
 import torch
@@ -8,161 +10,45 @@ import yaml
 
 from src.features import (
     ConcatFeatureTransformer,
-    CoOccurItems,
     Item2VecItem2ItemSim,
-    Item2VecItem2ItemSimByAction,
     ItemAttribute,
     RecBoleItem2ItemSim,
-    RecBoleItem2ItemSimByAction,
     RecBolePredictor,
     RecentActionDayDiff,
     RecentActionFrequency,
-    RecentActionItemsByAction,
     RecentActionSimItems,
+    RetrieverRank,
 )
 
-CONFIG_PATH = "config/features.yaml"
+
+def get_valid_path(
+    param: Dict, check_param_list: List, date_th: str, visited: Set = set()
+):
+    for key, value in param.items():
+        if key in check_param_list:
+            param[key] = param[key][date_th]
+        elif isinstance(value, dict) and key not in visited:
+            visited = visited | set([key])
+            param[key] = get_valid_path(param[key], check_param_list, date_th, visited)
+    return param
 
 
-def get_features_config(config: Dict, date_th: str) -> Dict:
-    raf1_config = config["recent_action_frequency1"].copy()
-    raf1_config["save_file_path"] = raf1_config["save_file_path"][date_th]
-
-    raf2_config = config["recent_action_frequency2"].copy()
-    raf2_config["save_file_path"] = raf2_config["save_file_path"][date_th]
-
-    itemattr_config = config["item_attribute"].copy()
-    itemattr_config["save_file_path"] = itemattr_config["save_file_path"][date_th]
-
-    radd_config = config["recent_action_daydiff"].copy()
-    radd_config["save_file_path"] = radd_config["save_file_path"][date_th]
-
-    # Prepare config of recbole-bpr retriever.
-    train_period = config["train_period"]
-    bpr_config = config["recbole_bpr"].copy()
-    bpr_config["checkpoint_path"] = bpr_config["checkpoint_path"][date_th]
-    bpr_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    bpr_config["save_file_path"] = bpr_config["save_file_path"][date_th]
-
-    # Prepare config of recbole-itemknn retriever.
-    train_period = config["train_period"]
-    itemknn_config = config["recbole_itemknn"].copy()
-    itemknn_config["checkpoint_path"] = itemknn_config["checkpoint_path"][date_th]
-    itemknn_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    itemknn_config["save_file_path"] = itemknn_config["save_file_path"][date_th]
-
-    # Prepare config of recbole-recvae retriever.
-    train_period = config["train_period"]
-    recvae_config = config["recbole_recvae"].copy()
-    recvae_config["checkpoint_path"] = recvae_config["checkpoint_path"][date_th]
-    recvae_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    recvae_config["save_file_path"] = recvae_config["save_file_path"][date_th]
-
-    ## Prepare config of recbole-neumf retriever.
-    # train_period = config["train_period"]
-    # neumf_config = config["recbole_neumf"].copy()
-    # neumf_config["checkpoint_path"] = neumf_config["checkpoint_path"][date_th]
-    # neumf_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    # neumf_config["save_file_path"] = neumf_config["save_file_path"][date_th]
-
-    rai_config = config["recent_action_items"].copy()
-    rai_config["save_file_path"] = rai_config["save_file_path"][date_th]
-
-    train_period = config["train_period"]
-    bpr_itemsim_config = config["recbole_item2item_sim_bpr"].copy()
-    bpr_itemsim_config["checkpoint_path"] = bpr_itemsim_config["checkpoint_path"][
-        date_th
+def prepare_config(config: Dict, date_th: str) -> Dict:
+    check_param_list = [
+        "save_file_path",
+        "checkpoint_path",
+        "dataset_name",
+        "co_occur_items_path",
+        "model_path",
+        "pairs_rank_path",
     ]
-    bpr_itemsim_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    bpr_itemsim_config["save_file_path"] = bpr_itemsim_config["save_file_path"][date_th]
-    bpr_itemsim_config["recent_action_items_config"] = rai_config
-
-    # train_period = config["train_period"]
-    # neumf_itemsim_config = config["recbole_item2item_sim_neumf"].copy()
-    # neumf_itemsim_config["checkpoint_path"] = neumf_itemsim_config["checkpoint_path"][
-    #    date_th
-    # ]
-    # neumf_itemsim_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    # neumf_itemsim_config["save_file_path"] = neumf_itemsim_config["save_file_path"][
-    #    date_th
-    # ]
-    # neumf_itemsim_config["recent_action_items_config"] = rai_config
-
-    train_period = config["train_period"]
-    item2vec_itemsim_config = config["item2vec_item2item_sim"].copy()
-    item2vec_itemsim_config["model_path"] = item2vec_itemsim_config["model_path"][
-        date_th
-    ]
-    item2vec_itemsim_config["save_file_path"] = item2vec_itemsim_config[
-        "save_file_path"
-    ][date_th]
-    item2vec_itemsim_config["recent_action_items_config"] = rai_config
-
-    coi1_config = config["co_occur_items1"].copy()
-    coi1_config["save_file_path"] = coi1_config["save_file_path"][date_th]
-    coi1_config["co_occur_items_path"] = coi1_config["co_occur_items_path"][date_th]
-
-    # coi2_config = config["co_occur_items2"].copy()
-    # coi2_config["save_file_path"] = coi2_config["save_file_path"][date_th]
-    # coi2_config["co_occur_items_path"] = coi2_config["co_occur_items_path"][date_th]
-
-    rasi1_config = config["recent_action_sim_items1"].copy()
-    rasi1_config["save_file_path"] = rasi1_config["save_file_path"][date_th]
-    rasi1_config["co_occur_items_config"] = coi1_config
-
-    # rasi2_config = config["recent_action_sim_items2"].copy()
-    # rasi2_config["save_file_path"] = rasi2_config["save_file_path"][date_th]
-    # rasi2_config["co_occur_items_config"] = coi2_config
-
-    raiba_config = config["recent_action_items_by_action"].copy()
-    raiba_config["save_file_path"] = raiba_config["save_file_path"][date_th]
-
-    train_period = config["train_period"]
-    bpr_itemsim_ba_config = config["recbole_item2item_sim_bpr_by_action"].copy()
-    bpr_itemsim_ba_config["checkpoint_path"] = bpr_itemsim_ba_config["checkpoint_path"][
-        date_th
-    ]
-    bpr_itemsim_ba_config["dataset_name"] = f"recbole_{date_th}_t{train_period}"
-    bpr_itemsim_ba_config["save_file_path"] = bpr_itemsim_ba_config["save_file_path"][
-        date_th
-    ]
-    bpr_itemsim_ba_config["recent_action_items_by_action_config"] = raiba_config
-
-    train_period = config["train_period"]
-    item2vec_itemsim_ba_config = config["item2vec_item2item_sim_by_action"].copy()
-    item2vec_itemsim_ba_config["model_path"] = item2vec_itemsim_ba_config["model_path"][
-        date_th
-    ]
-    item2vec_itemsim_ba_config["save_file_path"] = item2vec_itemsim_ba_config[
-        "save_file_path"
-    ][date_th]
-    item2vec_itemsim_ba_config["recent_action_items_by_action_config"] = raiba_config
-
-    features_config = {
-        "recent_action_frequency1": raf1_config,
-        "recent_action_frequency2": raf2_config,
-        "item_attribute": itemattr_config,
-        "recent_action_daydiff": radd_config,
-        "recbole_bpr": bpr_config,
-        "recbole_itemknn": itemknn_config,
-        "recbole_recvae": recvae_config,
-        # "recbole_neumf": neumf_config,
-        "recent_action_items": rai_config,
-        "recbole_item2item_sim_bpr": bpr_itemsim_config,
-        # "recbole_item2item_sim_neumf": neumf_itemsim_config,
-        "item2vec_item2item_sim": item2vec_itemsim_config,
-        "recent_action_sim_items1": rasi1_config,
-        # "recent_action_sim_items2": rasi2_config,
-        "recent_action_items_by_action": raiba_config,
-        "recbole_item2item_sim_bpr_by_action": bpr_itemsim_ba_config,
-        "recent_action_items_by_action": item2vec_itemsim_ba_config,
-    }
-    return features_config
+    config = get_valid_path(config, check_param_list, date_th)
+    return config
 
 
 def get_feature_transformer(config: Dict, date_th: str) -> ConcatFeatureTransformer:
 
-    feature_config = get_features_config(config, date_th)
+    feature_config = prepare_config(config, date_th)
 
     feature_transformers = [
         ItemAttribute(**feature_config["item_attribute"]),
@@ -174,43 +60,46 @@ def get_feature_transformer(config: Dict, date_th: str) -> ConcatFeatureTransfor
         RecBolePredictor(**feature_config["recbole_recvae"]),
         RecBoleItem2ItemSim(**feature_config["recbole_item2item_sim_bpr"]),
         Item2VecItem2ItemSim(**feature_config["item2vec_item2item_sim"]),
-        RecentActionSimItems(**feature_config["recent_action_sim_items1"]),
+        RecentActionSimItems(**feature_config["recent_action_sim_items"]),
+        RetrieverRank(**feature_config["retriever_rank"]),
     ]
     return ConcatFeatureTransformer(feature_transformers)
 
 
-if __name__ == "__main__":
-
+def main(config_path):
     # Load Configuration.
-    with open(CONFIG_PATH, "r") as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-
     input_dir = Path(config["preprocessed_data_dir"])
     pairs_dir = Path(config["pairs_dir"])
     features_dir = Path(config["features_dir"])
-    pairs_suffix = (
-        f"_{config['pairs_file_suffix']}" if config["pairs_file_suffix"] else ""
-    )
-    features_suffix = (
-        f"_{config['features_file_suffix']}" if config["features_file_suffix"] else ""
-    )
+    pairs_suffix = "_" + config["pairs_file_suffix"]
+    features_suffix = "_" + config["features_file_suffix"]
     train_period = config["train_period"]
 
     for date_th in config["date_th"]:
-
-        df = pd.read_pickle(input_dir / f"train_{date_th}_t{train_period}.pickle")
-        pairs = pd.read_pickle(
-            pairs_dir / f"pairs_{date_th}_t{train_period}{pairs_suffix}.pickle"
+        df_path = input_dir / f"train_{date_th}_t{train_period}.pickle"
+        pairs_path = pairs_dir / f"pairs_{date_th}_t{train_period}{pairs_suffix}.pickle"
+        features_path = (
+            features_dir / f"features_{date_th}_t{train_period}{features_suffix}.pickle"
         )
 
-        feature_transformer = get_feature_transformer(config, date_th)
+        # make features.
+        df = pd.read_pickle(df_path)
+        pairs = pd.read_pickle(pairs_path)
+        feature_transformer = get_feature_transformer(deepcopy(config), date_th)
         features = feature_transformer.fit_transform(df, pairs)
         pairs = pairs[["user_id", "product_id", "target"]]
         features = pd.concat([pairs, features], axis=1)
-        features.to_pickle(
-            features_dir / f"features_{date_th}_t{train_period}{features_suffix}.csv",
-        )
+        features.to_pickle(features_path)
 
         del df, pairs, feature_transformer, features
         gc.collect()
         torch.cuda.empty_cache()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config-path", type=str, default="config/features.yaml")
+    args = parser.parse_args()
+    main(args.config_path)
