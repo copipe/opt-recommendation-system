@@ -1,0 +1,26 @@
+# Environment Settings
+checkpoint_dir: 'model/recvae'    # (str) The path to save checkpoint file.
+
+# Model Settings
+neg_sampling: # None
+hidden_dimension : 128 # The hidden dimension of auto-encoder. Defaults to 600.
+latent_dimension : 64 # The latent dimension of auto-encoder. Defaults to 200.
+dropout_prob : 0.5 # The drop out probability of input. Defaults to 0.5.
+beta : 0.2 # The default hyperparameter of the weight of KL loss. Defaults to 0.2.
+gamma : 0.005 # The hyperparameter shared across all users. Defaults to 0.005.
+mixture_weights : [0.15, 0.75, 0.1] #. The mixture weights of three composite priors. Defaults to [0.15, 0.75, 0.1].
+n_enc_epochs : 3 # The training times of encoder per epoch. Defaults to 3.
+n_dec_epochs : 1 # The training times of decoder per epoch. Defaults to 1.
+
+# Training Settings
+epochs: 30                      # (int) The number of training epochs.
+train_batch_size: 64            # (int) The training batch size.
+learner: adam                   # (str) The name of used optimizer.
+learning_rate: 0.001            # (float) Learning rate.
+
+# Evaluation Settings
+eval_batch_size: 256            # (int) The evaluation batch size.
+
+# Dataset Settings
+user_inter_num_interval: '[10, inf)'      # (str) User interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
+item_inter_num_interval: '[10, inf)'      # (str) Item interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].

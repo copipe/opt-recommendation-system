@@ -13,8 +13,16 @@ services:
         - GID=${HOST_GID-1000}
       context: ./
       dockerfile: Dockerfile
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities:
+                - gpu
     tty: true
     volumes:
       - ./:/home/developer/opt-sota-challenge
+      - /hdd_disk/opt_data:/home/developer/opt-sota-challenge/data
+      - /hdd_disk/opt_model:/home/developer/opt-sota-challenge/model
     ports:
       - 8888:8888

@@ -1,0 +1,15 @@
+# Environment Settings
+checkpoint_dir: 'model/itemknn'    # (str) The path to save checkpoint file.
+
+# Model Settings
+k: 100
+shrink: 0.0
+
+# Training Settings
+epochs: 1                       # (int) The number of training epochs.
+train_batch_size: 256           # (int) The training batch size.
+
+# Evaluation Settings
+eval_batch_size: 1024           # (int) The evaluation batch size.
+
+

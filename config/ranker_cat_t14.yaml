@@ -1,0 +1,42 @@
+# Ranker Settings
+model_name: 'baseline_cat_t14'
+save_file_dir: 'model/ranker/'
+preprocessed_train_path: 'data/processed/train.pickle'
+train_features_path: 'data/features/features_2017-04-16_t14_baseline.pickle'
+valid_features_path: 'data/features/features_2017-04-23_t14_baseline.pickle'
+test_features_path: 'data/features/features_2017-04-30_t14_baseline.pickle'
+
+negative_sampling: True
+negative_sampling_rate: 0.25
+negative_sampling_random_state: 0
+negative_sampling_n_repeat: 5
+
+target_col: 'target'
+drop_cols:
+  - 'user_id'
+  - 'product_id'
+  - 'target'
+category_cols:
+  - 'item_category'
+
+model_type: 'cat'
+model_params:
+  loss_function: 'YetiRank'
+  custom_metric: ['NDCG']
+  learning_rate: 0.02
+  iterations: 1000
+  max_depth: 8
+  max_bin: 256
+  l2_leaf_reg: 0.00
+  colsample_bylevel: 0.8
+  random_seed: 0
+  early_stopping_rounds: 50
+  verbose: 50
+  use_best_model: True
+
+train_params: None
+
+cv_params:
+  date_th: '2017-04-23'
+  train_period: 14
+  eval_period: 7

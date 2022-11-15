@@ -1,0 +1,10 @@
+# Preprocess Settings
+input_data_dir: 'data/raw'           # (str) Directory of competition data.
+processed_data_dir: 'data/processed' # (str) Output directory.
+
+date_th:                             # (str) List of boundary between train period and evaluation period.
+  - '2017-04-16'
+  - '2017-04-23'
+  - '2017-04-30'
+train_period: 14                     # (int) Number of days of train period.
+eval_period: 7                       # (int) Number of days of evaluation period.

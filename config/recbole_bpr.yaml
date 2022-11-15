@@ -1,0 +1,16 @@
+# Environment Settings
+checkpoint_dir: 'model/bpr'    # (str) The path to save checkpoint file.
+
+# Model Settings
+embedding_size: 128
+
+# Training Settings
+epochs: 10                      # (int) The number of training epochs.
+train_batch_size: 256           # (int) The training batch size.
+learner: adam                   # (str) The name of used optimizer.
+learning_rate: 0.001            # (float) Learning rate.
+
+# Evaluation Settings
+eval_batch_size: 1024           # (int) The evaluation batch size.
+
+

@@ -1,0 +1,90 @@
+# Retriever Settings
+test_data_path: 'data/raw/test.tsv'
+preprocessed_data_dir: 'data/processed'    # (str) Directory of preprocessed data.
+pairs_dir: 'data/pairs'                    # (str) Directory of user-item pairs (candidates for ranking).
+pairs_file_suffix: 'baseline'
+
+date_th:                                   # (str) List of boundary between train period and evaluation period.
+  - '2017-04-23'
+  - '2017-04-30'
+train_period: 21                           # (int) Number of days of train period.
+eval_period: 7                             # (int) Number of days of evaluation period.
+
+
+popular_item:
+  top_n: 100
+
+favorite_item:
+  top_n: 200
+
+co_occurence_item:
+  top_n: 200
+  co_occur_items_path:
+    '2017-04-16': 'model/co_occur_items/co-occurrence_2017-04-16_t21.pickle'
+    '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t21.pickle'
+    '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t21.pickle'
+
+item2vec:
+  model_path:
+    '2017-04-16': 'model/item2vec/item2vec_2017-04-16_t21.pickle'
+    '2017-04-23': 'model/item2vec/item2vec_2017-04-23_t21.pickle'
+    '2017-04-30': 'model/item2vec/item2vec_2017-04-30_t21.pickle'
+  top_n: 100
+  vector_size: 128
+  window: 5
+  epochs: 30
+  ns_exponent: 0.0
+  seed: 0
+  min_count: 5
+  workers: 8
+
+recbole_bpr:
+  model_name: 'BPR'
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_bpr.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/bpr/bpr_2017-04-16_t21.pth'
+    '2017-04-23': 'model/bpr/bpr_2017-04-23_t21.pth'
+    '2017-04-30': 'model/bpr/bpr_2017-04-30_t21.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t21'
+    '2017-04-23': 'recbole_2017-04-23_t21'
+    '2017-04-30': 'recbole_2017-04-30_t21'
+  batch_size: 64
+  top_n: 100
+
+recbole_itemknn:
+  model_name: 'ItemKNN'
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_itemknn.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/itemknn/itemknn_2017-04-16_t21.pth'
+    '2017-04-23': 'model/itemknn/itemknn_2017-04-23_t21.pth'
+    '2017-04-30': 'model/itemknn/itemknn_2017-04-30_t21.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t21'
+    '2017-04-23': 'recbole_2017-04-23_t21'
+    '2017-04-30': 'recbole_2017-04-30_t21'
+  batch_size: 64
+  top_n: 100
+
+recbole_recvae:
+  model_name: 'RecVAE'
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_recvae_t21.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/recvae/recvae_2017-04-16_t21.pth'
+    '2017-04-23': 'model/recvae/recvae_2017-04-23_t21.pth'
+    '2017-04-30': 'model/recvae/recvae_2017-04-30_t21.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t21'
+    '2017-04-23': 'recbole_2017-04-23_t21'
+    '2017-04-30': 'recbole_2017-04-30_t21'
+  batch_size: 64
+  top_n: 100
+
+concat_retriever:
+  top_n: 500

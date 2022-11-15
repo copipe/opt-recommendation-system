@@ -1,0 +1,184 @@
+# Features Settings
+test_data_path: 'data/raw/test.tsv'
+preprocessed_data_dir: 'data/processed'    # (str) Directory of preprocessed data.
+pairs_dir: 'data/pairs'                    # (str) Directory of user-item pairs (candidates for ranking).
+pairs_file_suffix: 'baseline'
+features_dir: 'data/features'              # (str) Directory of user-item pairs (candidates for ranking).
+features_file_suffix: 'baseline'
+
+date_th:                                   # (str) List of boundary between train period and evaluation period.
+  - '2017-04-16'
+  - '2017-04-23'
+  - '2017-04-30'
+train_period: 14                           # (int) Number of days of train period.
+eval_period: 7                             # (int) Number of days of evaluation period.
+
+recent_action_frequency1:
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_frequency/dr10_2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recent_action_frequency/dr10_2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recent_action_frequency/dr10_2017-04-30_t14.pickle'
+  decay_rate: 1.0
+
+recent_action_frequency2:
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_frequency/dr08_2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recent_action_frequency/dr08_2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recent_action_frequency/dr08_2017-04-30_t14.pickle'
+  decay_rate: 0.8
+
+recent_action_pattern:
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_pattern/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recent_action_pattern/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recent_action_pattern/2017-04-30_t14.pickle'
+
+item_attribute:
+  save_file_path:
+    '2017-04-16': 'data/features/item_attribute/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/item_attribute/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/item_attribute/2017-04-30_t14.pickle'
+
+recent_action_daydiff:
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_daydiff/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recent_action_daydiff/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recent_action_daydiff/2017-04-30_t14.pickle'
+
+recbole_bpr:
+  model_name: 'BPR'
+  transformer_name: 'bpr'
+  batch_size: 64
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_bpr.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/bpr/bpr_2017-04-16_t14.pth'
+    '2017-04-23': 'model/bpr/bpr_2017-04-23_t14.pth'
+    '2017-04-30': 'model/bpr/bpr_2017-04-30_t14.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14'
+    '2017-04-23': 'recbole_2017-04-23_t14'
+    '2017-04-30': 'recbole_2017-04-30_t14'
+
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_bpr/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recbole_bpr/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recbole_bpr/2017-04-30_t14.pickle'
+
+recbole_itemknn:
+  model_name: 'ItemKNN'
+  transformer_name: 'itemknn'
+  batch_size: 64
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_itemknn.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/itemknn/itemknn_2017-04-16_t14.pth'
+    '2017-04-23': 'model/itemknn/itemknn_2017-04-23_t14.pth'
+    '2017-04-30': 'model/itemknn/itemknn_2017-04-30_t14.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14'
+    '2017-04-23': 'recbole_2017-04-23_t14'
+    '2017-04-30': 'recbole_2017-04-30_t14'
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_itemknn/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recbole_itemknn/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recbole_itemknn/2017-04-30_t14.pickle'
+
+recbole_recvae:
+  model_name: 'RecVAE'
+  transformer_name: 'recvae'
+  batch_size: 16
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_recvae.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/recvae/recvae_2017-04-16_t14.pth'
+    '2017-04-23': 'model/recvae/recvae_2017-04-23_t14.pth'
+    '2017-04-30': 'model/recvae/recvae_2017-04-30_t14.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14'
+    '2017-04-23': 'recbole_2017-04-23_t14'
+    '2017-04-30': 'recbole_2017-04-30_t14'
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_recvae/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recbole_recvae/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recbole_recvae/2017-04-30_t14.pickle'
+
+recbole_item2item_sim_bpr:
+  model_name: 'BPR'
+  transformer_name: 'bpr'
+  batch_size: 64
+  config_file_list:
+    - 'config/recbole_base.yaml'
+    - 'config/recbole_bpr.yaml'
+  checkpoint_path:
+    '2017-04-16': 'model/bpr/bpr_2017-04-16_t14.pth'
+    '2017-04-23': 'model/bpr/bpr_2017-04-23_t14.pth'
+    '2017-04-30': 'model/bpr/bpr_2017-04-30_t14.pth'
+  dataset_name:
+    '2017-04-16': 'recbole_2017-04-16_t14'
+    '2017-04-23': 'recbole_2017-04-23_t14'
+    '2017-04-30': 'recbole_2017-04-30_t14'
+  save_file_path:
+    '2017-04-16': 'data/features/recbole_item2item_sim_bpr/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recbole_item2item_sim_bpr/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recbole_item2item_sim_bpr/2017-04-30_t14.pickle'
+  recent_action_items_config:
+    save_file_path:
+      '2017-04-16': 'data/features/recent_action_items/n5_2017-04-16_t14.pickle'
+      '2017-04-23': 'data/features/recent_action_items/n5_2017-04-23_t14.pickle'
+      '2017-04-30': 'data/features/recent_action_items/n5_2017-04-30_t14.pickle'
+    n_items: 5
+
+item2vec_item2item_sim:
+  batch_size: 10240
+  model_path:
+    '2017-04-16': 'model/item2vec/item2vec_2017-04-16_t14.pickle'
+    '2017-04-23': 'model/item2vec/item2vec_2017-04-23_t14.pickle'
+    '2017-04-30': 'model/item2vec/item2vec_2017-04-30_t14.pickle'
+  vector_size: 128
+  window: 5
+  epochs: 30
+  ns_exponent: 0.0
+  seed: 0
+  min_count: 5
+  workers: 8
+  save_file_path:
+    '2017-04-16': 'data/features/item2vec_item2item_sim/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/item2vec_item2item_sim/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/item2vec_item2item_sim/2017-04-30_t14.pickle'
+  recent_action_items_config:
+    save_file_path:
+      '2017-04-16': 'data/features/recent_action_items/n5_2017-04-16_t14.pickle'
+      '2017-04-23': 'data/features/recent_action_items/n5_2017-04-23_t14.pickle'
+      '2017-04-30': 'data/features/recent_action_items/n5_2017-04-30_t14.pickle'
+    n_items: 5
+
+recent_action_sim_items:
+  decay_rates: [1.0]
+  save_file_path:
+    '2017-04-16': 'data/features/recent_action_sim_items/n5_2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/recent_action_sim_items/n5_2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/recent_action_sim_items/n5_2017-04-30_t14.pickle'
+  co_occur_items_config:
+    save_file_path:
+      '2017-04-16': 'data/features/co_occur_items/n5_2017-04-16_t14.pickle'
+      '2017-04-23': 'data/features/co_occur_items/n5_2017-04-23_t14.pickle'
+      '2017-04-30': 'data/features/co_occur_items/n5_2017-04-30_t14.pickle'
+    n_items: 5
+    co_occur_items_path:
+      '2017-04-16': 'model/co_occur_items/co-occurrence_2017-04-16_t14.pickle'
+      '2017-04-23': 'model/co_occur_items/co-occurrence_2017-04-23_t14.pickle'
+      '2017-04-30': 'model/co_occur_items/co-occurrence_2017-04-30_t14.pickle'
+
+retriever_rank:
+  save_file_path:
+    '2017-04-16': 'data/features/retriever_rank/2017-04-16_t14.pickle'
+    '2017-04-23': 'data/features/retriever_rank/2017-04-23_t14.pickle'
+    '2017-04-30': 'data/features/retriever_rank/2017-04-30_t14.pickle'
+  pairs_rank_path:
+    '2017-04-16': 'data/pairs/pairs_rank_2017-04-16_t14.pickle'
+    '2017-04-23': 'data/pairs/pairs_rank_2017-04-23_t14.pickle'
+    '2017-04-30': 'data/pairs/pairs_rank_2017-04-30_t14.pickle'
