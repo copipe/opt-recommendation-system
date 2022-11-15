@@ -1,0 +1,48 @@
+# Ranker Settings
+model_name: 'baseline_lgb_t21'
+save_file_dir: 'model/ranker/'
+preprocessed_train_path: 'data/processed/train.pickle'
+train_features_path: 'data/features/features_2017-04-16_t21_baseline.pickle'
+valid_features_path: 'data/features/features_2017-04-23_t21_baseline.pickle'
+test_features_path: 'data/features/features_2017-04-30_t21_baseline.pickle'
+
+negative_sampling: True
+negative_sampling_rate: 0.25
+negative_sampling_random_state: 0
+negative_sampling_n_repeat: 5
+
+target_col: 'target'
+drop_cols:
+  - 'user_id'
+  - 'product_id'
+  - 'target'
+
+category_cols:
+  - 'item_category'
+
+model_type: 'lgb'
+model_params:
+  objective: 'lambdarank'
+  lambdarank_truncation_level: 22
+  label_gain: '0,1,3,7'
+  lambdarank_norm: True
+  metric: 'ndcg'
+  learning_rate: 0.02
+  eval_at: '22'
+  num_leaves: 64
+  max_bin: 256
+  neg_bagging_fraction: 0.8
+  bagging_freq: 1
+  bagging_seed: 0
+  feature_fraction: 0.8
+  lambda_l2: 0.0001
+
+train_params:
+  num_boost_round: 600
+  early_stopping_rounds: 50
+  verbose_eval: 50
+
+cv_params:
+  date_th: '2017-04-23'
+  train_period: 21
+  eval_period: 7

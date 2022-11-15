@@ -1,19 +1,17 @@
 # Ranker Settings
-model_name: 'exp030'
+model_name: 'baseline_lgb+cat_t14'
 save_file_dir: 'model/ranker/'
 preprocessed_train_path: 'data/processed/train.pickle'
 
 model_path_list:
-  - 'model/ranker/exp027'
-  - 'model/ranker/exp028'
-  - 'model/ranker/exp029'
+  - 'model/ranker/baseline_lgb_t14'
+  - 'model/ranker/baseline_cat_t14'
 
 model_weight_list:
   - 1.0
   - 1.0
-  - 1.0
 
-method: 'score' # ['score', 'rank']
+method: 'rank' # ['score', 'rank']
 
 cv_params:
   date_th: '2017-04-23'
