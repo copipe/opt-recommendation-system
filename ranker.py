@@ -1,5 +1,6 @@
 import argparse
 import pickle
+from copy import deepcopy
 from pathlib import Path
 from typing import Dict
 
@@ -9,7 +10,7 @@ import pandas as pd
 import yaml
 
 from src.evaluation import get_ndcg_score, get_pred_items
-from src.ranker import LGBRanker
+from src.ranker import CATRanker, LGBRanker
 
 
 def prepare_data(df: pd.DataFrame, config: Dict, train: bool):
@@ -29,8 +30,12 @@ def prepare_data(df: pd.DataFrame, config: Dict, train: bool):
     df = df.sort_values("user_id").reset_index(drop=True)
     X = df.drop(config["drop_cols"], axis=1)
     y = df[config["target_col"]]
-    q = df.groupby("user_id").size().values
-    return df, X, y, q
+    if config["model_type"] == "lgb":
+        q = df.groupby("user_id").size().values
+        return df, X, y, q
+    else:
+        g = df["user_id"]
+        return df, X, y, g
 
 
 def save_feature_importance(model, output_dir):
@@ -56,33 +61,50 @@ def save_feature_importance(model, output_dir):
 def main(config_path):
     # Load config.
     with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
+        config_org = yaml.safe_load(f)
 
-    # Load data.
-    df = pd.read_pickle(config["preprocessed_train_path"])
-    train = pd.read_pickle(config["train_features_path"])
-    valid = pd.read_pickle(config["valid_features_path"])
-    test = pd.read_pickle(config["test_features_path"])
+    n_repeat = config_org["negative_sampling_n_repeat"]
+    for i in range(n_repeat):
+        # Set random state.
+        config = deepcopy(config_org)
+        config["negative_sampling_random_state"] = i
 
-    # Prepare model inputs.
-    train, X_train, y_train, q_train = prepare_data(train, config, True)
-    valid, X_valid, y_valid, q_valid = prepare_data(valid, config, False)
-    test, X_test, _, _ = prepare_data(test, config, False)
+        # Load data.
+        df = pd.read_pickle(config["preprocessed_train_path"])
+        train = pd.read_pickle(config["train_features_path"])
+        valid = pd.read_pickle(config["valid_features_path"])
+        test = pd.read_pickle(config["test_features_path"])
 
-    # Train & Inference
-    model = LGBRanker()
-    model.train(
-        config["model_params"],
-        X_train,
-        y_train,
-        q_train,
-        X_valid,
-        y_valid,
-        q_valid,
-        train_params=config["train_params"],
-    )
-    y_valid_pred = model.predict(X_valid)
-    y_test_pred = model.predict(X_test)
+        # Prepare model inputs.
+        train, X_train, y_train, z_train = prepare_data(train, config, True)
+        valid, X_valid, y_valid, z_valid = prepare_data(valid, config, False)
+        test, X_test, _, _ = prepare_data(test, config, False)
+
+        # Train & Inference
+        if config["model_type"] == "lgb":
+            model = LGBRanker()
+        else:
+            model = CATRanker()
+
+        model.train(
+            config["model_params"],
+            X_train,
+            y_train,
+            z_train,
+            X_valid,
+            y_valid,
+            z_valid,
+            train_params=config["train_params"],
+        )
+
+        if i == 0:
+            y_valid_pred = model.predict(X_valid)
+            y_test_pred = model.predict(X_test)
+        else:
+            y_valid_pred += model.predict(X_valid)
+            y_test_pred += model.predict(X_test)
+    y_valid_pred = y_valid_pred / n_repeat
+    y_test_pred = y_test_pred / n_repeat
 
     # Culculate CV score.
     pred_items = get_pred_items(valid[["user_id", "product_id"]], y_valid_pred)
@@ -112,7 +134,8 @@ def main(config_path):
         pickle.dump(config, f)
 
     # Save feature importance.
-    save_feature_importance(model, output_dir)
+    if config["model_type"] == "lgb":
+        save_feature_importance(model, output_dir)
 
     # Save prediction for valid data.
     valid_pred = valid[["user_id", "product_id"]].assign(y_pred=y_valid_pred)
