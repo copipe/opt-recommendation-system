@@ -75,6 +75,7 @@ class RecBoleTransformer(AbstractFeatureTransformer):
     def __init__(
         self,
         save_file_path: str,
+        transformer_name: str,
         model_name: str,
         dataset_name: str,
         config_file_list: List[Path],
@@ -83,6 +84,7 @@ class RecBoleTransformer(AbstractFeatureTransformer):
     ):
         super().__init__(save_file_path)
         self.model_name = model_name
+        self.transformer_name = transformer_name
         self.dataset_name = dataset_name
         self.config_file_list = config_file_list
         if isinstance(checkpoint_path, str):
@@ -232,6 +234,49 @@ class RecentActionFrequency(RecentActionTransformer):
             return feature
 
 
+class RecentActionPattern(RecentActionTransformer):
+    def __init__(
+        self,
+        save_file_path: str,
+    ):
+        super().__init__(save_file_path)
+        self.index2action = {v: k for k, v in self.action2index.items()}
+
+    def fit(self, df: pd.DataFrame, pairs: pd.DataFrame):
+        pass
+
+    def transform(self, df: pd.DataFrame, pairs: pd.DataFrame) -> pd.DataFrame:
+        if self.save_file_path.exists():
+            return self._load_feature()
+        else:
+            # Aggregate actions num by user_id and product_id
+            df = (
+                df.groupby(["user_id", "product_id", "event_type"])
+                .size()
+                .unstack("event_type")
+            ).rename(columns=self.index2action)
+            df.columns.name = None
+            df = df.reset_index()
+
+            # Make repeat cv flag.
+            df["is_repeat"] = (df["cv"] > 1).astype(int)
+            df.loc[df["cv"].isna(), "is_repeat"] = np.nan
+
+            # Make repeat cv rate.
+            new_feature_names = []
+            for col in ["user_id", "product_id"]:
+                new_col = f"repeat_cv_rate_by_{col}"
+                df[new_col] = df.groupby(col)["is_repeat"].transform("mean")
+                new_feature_names.append(new_col)
+
+            # Merge pairs and df.
+            keys = ["user_id", "product_id"]
+            pairs = pd.merge(pairs, df[new_feature_names + keys], how="left", on=keys)
+            feature = pairs[new_feature_names].fillna(0)
+            self._save_feature(feature)
+            return feature
+
+
 class RecentActionDayDiff(RecentActionTransformer):
     def __init__(
         self,
@@ -276,6 +321,7 @@ class RecBolePredictor(RecBoleTransformer):
     def __init__(
         self,
         save_file_path: str,
+        transformer_name: str,
         model_name: str,
         dataset_name: str,
         config_file_list: List[Path],
@@ -284,6 +330,7 @@ class RecBolePredictor(RecBoleTransformer):
     ):
         super().__init__(
             save_file_path,
+            transformer_name,
             model_name,
             dataset_name,
             config_file_list,
@@ -321,7 +368,7 @@ class RecBolePredictor(RecBoleTransformer):
                 batch_pred = model.predict(data)
                 pred += batch_pred.to("cpu").detach().tolist()
 
-            feature_name = f"{self.model_name}_pred"
+            feature_name = f"{self.transformer_name}_pred"
             pairs[feature_name] = pred
 
             new_feature_names = [feature_name]
@@ -373,6 +420,7 @@ class RecBoleItem2ItemSim(RecBoleTransformer):
         self,
         recent_action_items_config: dict,
         save_file_path: str,
+        transformer_name: str,
         model_name: str,
         dataset_name: str,
         config_file_list: List[Path],
@@ -381,6 +429,7 @@ class RecBoleItem2ItemSim(RecBoleTransformer):
     ):
         super().__init__(
             save_file_path,
+            transformer_name,
             model_name,
             dataset_name,
             config_file_list,
@@ -431,11 +480,11 @@ class RecBoleItem2ItemSim(RecBoleTransformer):
             pred = pd.DataFrame(pred)
 
             new_feature_names = []
-            feat_name = f"max_{self.model_name}-sim_n{n_items}_item2history"
+            feat_name = f"max_{self.transformer_name}-sim_n{n_items}_item2history"
             pairs[feat_name] = pred.max(axis=1)
             new_feature_names.append(feat_name)
 
-            feat_name = f"avg_{self.model_name}-sim_n{n_items}_item2history"
+            feat_name = f"avg_{self.transformer_name}-sim_n{n_items}_item2history"
             pairs[feat_name] = pred.mean(axis=1)
             new_feature_names.append(feat_name)
 
