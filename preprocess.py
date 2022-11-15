@@ -1,11 +1,10 @@
+import argparse
 from pathlib import Path
 
 import pandas as pd
 import yaml
 
 from src.utils import get_data_period, period_extraction
-
-CONFIG_PATH = "config/preprocess.yaml"
 
 
 def concat_train_dataframes(train_dir: Path) -> pd.DataFrame:
@@ -19,7 +18,7 @@ def concat_train_dataframes(train_dir: Path) -> pd.DataFrame:
     """
     train_dataframes = []
     for data_path in train_dir.iterdir():
-        train = pd.read_csv(data_path, delimiter="\t")
+        train = pd.read_csv(data_path, delimiter="\t", engine="python")
         train["category"] = train["user_id"].str.split("_", expand=True)[1]
         train["time_stamp"] = pd.to_datetime(train["time_stamp"])
         train_dataframes.append(train)
@@ -87,10 +86,9 @@ def label_formatter(df_train: pd.DataFrame, df_eval: pd.DataFrame) -> pd.DataFra
     return df_eval
 
 
-if __name__ == "__main__":
-
+def main(config_path):
     # Load Configuration.
-    with open(CONFIG_PATH, "r") as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     train_period = config["train_period"]
@@ -124,3 +122,11 @@ if __name__ == "__main__":
         # Save label data.
         df_label = label_formatter(df_train, df_eval)
         df_label.to_pickle(output_dir / f"label_{date_th}.pickle")
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config-path", type=str, default="config/preprocess.yaml")
+    args = parser.parse_args()
+    main(args.config_path)
