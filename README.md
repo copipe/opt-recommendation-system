@@ -36,7 +36,7 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/envs/rapids/lib
 
 ## Execution
 
-The final submit can be roughly reproduced with the following command. The actual final submission is a single model (catboost) without the ensemble.
+The final submit can be roughly reproduced with the following command. The actual final submission is a single model (catboost) without ensemble.
 ```
 $ sh run.sh
 ```
