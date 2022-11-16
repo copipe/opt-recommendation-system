@@ -2,7 +2,7 @@
 model_name: 'baseline_cat_t21'
 save_file_dir: 'model/ranker/'
 preprocessed_train_path: 'data/processed/train.pickle'
-train_features_path: 'data/features/features_2017-04-16_t21_baseline.pickle'
+train_features_path: 'data/features/features_2017-04-23_t21_baseline.pickle'
 valid_features_path: 'data/features/features_2017-04-23_t21_baseline.pickle'
 test_features_path: 'data/features/features_2017-04-30_t21_baseline.pickle'
 
