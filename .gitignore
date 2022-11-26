@@ -1,7 +1,7 @@
 # Project
 
 data/
-model/
+#model/
 log_tensorboard/
 notebooks/
 
